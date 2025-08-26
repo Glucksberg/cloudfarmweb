@@ -9,6 +9,7 @@ import Equipe from './pages/Equipe';
 import Configuracoes from './pages/Configuracoes';
 import MapTest from './pages/MapTest';
 import MapTestSimple from './pages/MapTestSimple';
+import MapTestBasic from './pages/MapTestBasic';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 
