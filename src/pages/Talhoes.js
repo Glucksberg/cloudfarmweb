@@ -5,6 +5,7 @@ import * as turf from 'turf';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import './Pages.css';
+import './DrawTools.css';
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
