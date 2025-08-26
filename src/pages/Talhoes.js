@@ -51,6 +51,28 @@ const Talhoes = () => {
       return originalConsoleError.apply(this, args);
     };
 
+    // Also override console.warn for warnings that might contain AbortErrors
+    console.warn = function(...args) {
+      const message = args.join(' ');
+      const fullMessage = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+
+      // Suppress AbortError patterns in warnings
+      if (message.includes('AbortError') ||
+          message.includes('signal is aborted') ||
+          fullMessage.includes('Object.cancel') ||
+          fullMessage.includes('Me.abortTile') ||
+          fullMessage.includes('ey._abortTile') ||
+          fullMessage.includes('ey._removeTile') ||
+          fullMessage.includes('abortTile')) {
+        console.log('⏹️ Suppressed AbortError console warning');
+        return;
+      }
+
+      return originalConsoleWarn.apply(this, args);
+    };
+
     window.__TELEMETRY_BLOCKED__ = true;
   }
 
