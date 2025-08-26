@@ -490,7 +490,7 @@ const Talhoes = () => {
         setShowNewTalhaoForm(false);
       });
 
-      // Tratamento de erros
+      // Comprehensive error handling
       mapInstance.on('error', (e) => {
         // Ignore abort errors as they're expected during cleanup
         if (e.error?.name === 'AbortError') {
@@ -498,12 +498,30 @@ const Talhoes = () => {
           return;
         }
 
-        // Ignore fetch errors from telemetry
-        if (e.error?.message?.includes('Failed to fetch') &&
-            (e.error?.stack?.includes('events.mapbox.com') ||
-             e.error?.stack?.includes('postPerformanceEvent') ||
-             e.error?.stack?.includes('postMapLoadEvent'))) {
-          console.log('📊 Telemetry request failed (ignoring)');
+        // Comprehensive telemetry error filtering
+        const errorMessage = e.error?.message || '';
+        const errorStack = e.error?.stack || '';
+
+        const isTelemetryError = errorMessage.includes('Failed to fetch') && (
+          errorStack.includes('events.mapbox.com') ||
+          errorStack.includes('api.mapbox.com/events') ||
+          errorStack.includes('postPerformanceEvent') ||
+          errorStack.includes('postMapLoadEvent') ||
+          errorStack.includes('postEvent') ||
+          errorStack.includes('processRequests') ||
+          errorStack.includes('queueRequest') ||
+          errorStack.includes('telemetry') ||
+          errorStack.includes('analytics')
+        );
+
+        if (isTelemetryError) {
+          console.log('📊 Telemetry error ignored:', errorMessage);
+          return;
+        }
+
+        // Also ignore generic "Failed to fetch" without useful context
+        if (errorMessage === 'Failed to fetch' && !errorStack.includes('tiles')) {
+          console.log('🌐 Generic fetch error ignored (likely telemetry)');
           return;
         }
 
