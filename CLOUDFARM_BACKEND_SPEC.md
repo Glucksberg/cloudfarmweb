@@ -599,7 +599,7 @@ Para versões futuras, considerar:
 
 ### Node.js
 ```bash
-npm install express cors ws sqlite3 dotenv
+npm install express cors ws sqlite3 dotenv jsonwebtoken bcryptjs
 npm install --save-dev nodemon
 ```
 
