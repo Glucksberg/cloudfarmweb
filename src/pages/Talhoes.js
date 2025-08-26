@@ -9,6 +9,153 @@ import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 
+// Ultra-aggressive global AbortError suppression before component loads
+if (typeof window !== 'undefined' && !window.__ABORT_ERROR_SUPPRESSED__) {
+  console.log('🚫 Setting up ultra-aggressive AbortError suppression...');
+
+  // Store originals
+  const _originalConsoleError = console.error;
+  const _originalConsoleWarn = console.warn;
+  const _originalWindowOnError = window.onerror;
+
+  // Override console.error with immediate AbortError detection
+  console.error = function(...args) {
+    try {
+      const errorString = args.map(arg => {
+        if (arg && typeof arg === 'object') {
+          if (arg.name === 'AbortError') return 'AbortError_SUPPRESSED';
+          if (arg.message && arg.message.includes('signal is aborted')) return 'AbortError_SUPPRESSED';
+          if (arg.stack && (
+            arg.stack.includes('Object.cancel') ||
+            arg.stack.includes('Me.abortTile') ||
+            arg.stack.includes('ey._abortTile') ||
+            arg.stack.includes('ey._removeTile') ||
+            arg.stack.includes('ey.update') ||
+            arg.stack.includes('Kt._updateSources') ||
+            arg.stack.includes('Map._render')
+          )) return 'AbortError_SUPPRESSED';
+          return JSON.stringify(arg);
+        }
+        return String(arg);
+      }).join(' ');
+
+      if (errorString.includes('AbortError') ||
+          errorString.includes('signal is aborted') ||
+          errorString.includes('Object.cancel') ||
+          errorString.includes('Me.abortTile') ||
+          errorString.includes('ey._abortTile') ||
+          errorString.includes('ey._removeTile') ||
+          errorString.includes('ey.update') ||
+          errorString.includes('Kt._updateSources') ||
+          errorString.includes('Map._render') ||
+          errorString.includes('AbortError_SUPPRESSED')) {
+        console.log('⏹️ GLOBAL: Suppressed AbortError at console.error level');
+        return;
+      }
+    } catch (e) {
+      // If analysis fails, still try to suppress common patterns
+      const simpleCheck = args.join(' ');
+      if (simpleCheck.includes('AbortError') || simpleCheck.includes('abortTile')) {
+        console.log('⏹️ GLOBAL: Suppressed AbortError (fallback check)');
+        return;
+      }
+    }
+
+    return _originalConsoleError.apply(this, args);
+  };
+
+  // Override console.warn similarly
+  console.warn = function(...args) {
+    const warnString = args.join(' ');
+    if (warnString.includes('AbortError') ||
+        warnString.includes('signal is aborted') ||
+        warnString.includes('abortTile')) {
+      console.log('⏹️ GLOBAL: Suppressed AbortError warning');
+      return;
+    }
+    return _originalConsoleWarn.apply(this, args);
+  };
+
+  // Override window.onerror
+  window.onerror = function(message, source, lineno, colno, error) {
+    if (typeof message === 'string' && (
+      message.includes('AbortError') ||
+      message.includes('signal is aborted') ||
+      message.includes('abortTile')
+    )) {
+      console.log('⏹️ GLOBAL: Suppressed AbortError at window.onerror level');
+      return true;
+    }
+
+    if (error && (
+      error.name === 'AbortError' ||
+      (error.message && error.message.includes('signal is aborted'))
+    )) {
+      console.log('⏹️ GLOBAL: Suppressed AbortError object at window.onerror level');
+      return true;
+    }
+
+    if (_originalWindowOnError) {
+      return _originalWindowOnError.call(this, message, source, lineno, colno, error);
+    }
+    return false;
+  };
+
+  // Global unhandled rejection handler
+  const handleUnhandledRejection = (event) => {
+    const reason = event.reason;
+    if (reason && (
+      reason.name === 'AbortError' ||
+      (typeof reason.message === 'string' && reason.message.includes('signal is aborted')) ||
+      (typeof reason === 'string' && reason.includes('AbortError'))
+    )) {
+      console.log('⏹️ GLOBAL: Suppressed unhandled AbortError rejection');
+      event.preventDefault();
+      return;
+    }
+  };
+
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+  // Global error event handler
+  const handleGlobalError = (event) => {
+    const error = event.error;
+    if (error && (
+      error.name === 'AbortError' ||
+      (error.message && error.message.includes('signal is aborted')) ||
+      (error.stack && (
+        error.stack.includes('Object.cancel') ||
+        error.stack.includes('Me.abortTile') ||
+        error.stack.includes('ey._abortTile') ||
+        error.stack.includes('ey._removeTile') ||
+        error.stack.includes('ey.update') ||
+        error.stack.includes('Kt._updateSources') ||
+        error.stack.includes('Map._render')
+      ))
+    )) {
+      console.log('⏹️ GLOBAL: Suppressed AbortError at global error event level');
+      event.preventDefault();
+      event.stopPropagation();
+      return false;
+    }
+  };
+
+  window.addEventListener('error', handleGlobalError);
+
+  // Store cleanup functions globally so they can be called later
+  window.__ABORT_ERROR_CLEANUP__ = () => {
+    console.error = _originalConsoleError;
+    console.warn = _originalConsoleWarn;
+    window.onerror = _originalWindowOnError;
+    window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    window.removeEventListener('error', handleGlobalError);
+    delete window.__ABORT_ERROR_SUPPRESSED__;
+    delete window.__ABORT_ERROR_CLEANUP__;
+  };
+
+  window.__ABORT_ERROR_SUPPRESSED__ = true;
+}
+
 const Talhoes = () => {
   // Immediate telemetry blocking before any state initialization
   if (typeof window !== 'undefined' && !window.__TELEMETRY_BLOCKED__) {
