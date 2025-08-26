@@ -19,13 +19,7 @@ const Talhoes = () => {
   const map = useRef(null);
   const componentMounted = useRef(true);
 
-  // Estados para controle de camadas
-  const [layers, setLayers] = useState({
-    satellite: false,  // Começar com mapa normal
-    talhoes: true,     // Talhões visíveis
-    curvas: false,     // Curvas de nível
-    drenagem: false    // Drenagem
-  });
+  // Sempre usar satélite + labels (sem alternância)
 
   // Adicionar supressor de erros específico para este componente
   useEffect(() => {
@@ -48,109 +42,7 @@ const Talhoes = () => {
     };
   }, []);
 
-  // Função para alternar entre estilos de mapa
-  const toggleMapStyle = (layerType) => {
-    if (!componentMounted.current) {
-      console.warn('⚠️ Componente desmontado. Operação cancelada.');
-      return;
-    }
-
-    if (!map.current || !mapLoaded) {
-      console.warn('⚠️ Mapa não carregado ainda. Aguarde...');
-      return;
-    }
-
-    // Alternar estilo do mapa base
-    if (layerType === 'satellite') {
-      const currentSatellite = layers.satellite;
-      const newStyle = !currentSatellite
-        ? 'mapbox://styles/mapbox/satellite-streets-v12'  // Satélite com labels
-        : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
-
-      console.log('🗺️ Alternando estilo:', currentSatellite ? 'Satélite → Normal' : 'Normal → Satélite');
-      console.log('🔗 URL do estilo:', newStyle);
-
-      try {
-        // Salvar referência das camadas dos talhões antes de mudar estilo
-        const talhoesData = map.current.getSource('talhoes');
-        const hasControls = map.current.hasControl && map.current.hasControl(new mapboxgl.NavigationControl());
-
-        map.current.setStyle(newStyle);
-
-        // Atualizar estado primeiro
-        setLayers(prev => ({ ...prev, satellite: !prev.satellite }));
-
-        // Recriar camadas dos talhões quando o estilo carregar
-        map.current.once('style.load', () => {
-          try {
-            console.log('🎨 Novo estilo carregado com sucesso!');
-
-            // Recriar controles de navegação se existiam
-            if (!hasControls) {
-              try {
-                map.current.addControl(new mapboxgl.NavigationControl());
-              } catch (controlError) {
-                console.warn('Aviso: Não foi possível readicionar controles:', controlError);
-              }
-            }
-
-            // Recriar camadas dos talhões se estavam visíveis
-            if (layers.talhoes && talhoesData) {
-              setTimeout(() => {
-                try {
-                  if (map.current && !map.current._removed) {
-                    addTalhoesLayer();
-                    console.log('✅ Camadas dos talhões recriadas');
-
-                    // Reaplicar seleção se houver
-                    if (selectedTalhao) {
-                      setTimeout(() => {
-                        try {
-                          if (map.current && !map.current._removed) {
-                            updateSelectedTalhao(selectedTalhao);
-                            console.log('🎯 Seleção de talhão reaplicada');
-                          }
-                        } catch (selectionError) {
-                          console.warn('⚠️ Erro ao reaplicar seleção (ignorado):', selectionError.message);
-                        }
-                      }, 200);
-                    }
-                  }
-                } catch (layerError) {
-                  console.warn('⚠️ Erro ao recriar camadas dos talhões (ignorado):', layerError.message);
-                }
-              }, 150);
-            }
-          } catch (styleLoadError) {
-            console.warn('⚠️ Erro no evento style.load (ignorado):', styleLoadError.message);
-          }
-        });
-
-        // Tratamento de erro na mudança de estilo
-        map.current.once('error', (error) => {
-          const errorMsg = error.error?.message || 'Unknown error';
-          if (errorMsg.includes('AbortError') || errorMsg.includes('signal is aborted')) {
-            console.warn('⚠️ AbortError durante mudança de estilo (ignorado):', errorMsg);
-          } else {
-            console.error('❌ Erro ao carregar novo estilo:', error);
-          }
-        });
-
-      } catch (styleError) {
-        console.error('❌ Erro ao alterar estilo do mapa:', styleError);
-      }
-    }
-
-    // Controlar visibilidade das outras camadas
-    if (layerType === 'talhoes' && map.current.getLayer('talhoes-layer')) {
-      const newVisibility = !layers.talhoes;
-      const visibility = newVisibility ? 'visible' : 'none';
-      map.current.setLayoutProperty('talhoes-layer', 'visibility', visibility);
-      map.current.setLayoutProperty('talhoes-border', 'visibility', visibility);
-      console.log('👁️ Visibilidade dos talhões:', visibility);
-      setLayers(prev => ({ ...prev, talhoes: newVisibility }));
-    }
-  };
+  // Não precisa mais de função para alternar - sempre satélite + labels
 
   // Função para atualizar talhão selecionado (extraída para reutilização)
   const updateSelectedTalhao = (talhaoId) => {
@@ -277,10 +169,10 @@ const Talhoes = () => {
     console.log('✅ Token Mapbox:', mapboxgl.accessToken.substring(0, 20) + '...');
 
     try {
-      // Usar configuração restritiva do mapboxConfig
+      // Usar configuração restritiva sempre com satélite + labels
       const mapConfig = getRestrictiveMapConfig(
         mapContainer.current,
-        'mapbox://styles/mapbox/streets-v11',
+        'mapbox://styles/mapbox/satellite-streets-v12',  // Sempre satélite + labels
         [-47.15, -15.48],
         12
       );
