@@ -9,6 +9,28 @@ import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 
 const Talhoes = () => {
+  // Immediate telemetry blocking before any state initialization
+  if (typeof window !== 'undefined' && !window.__TELEMETRY_BLOCKED__) {
+    console.log('🚫 Immediate telemetry blocking...');
+    window.MAPBOX_DISABLE_TELEMETRY = true;
+
+    // Override console.error to suppress telemetry errors
+    const originalConsoleError = console.error;
+    console.error = function(...args) {
+      const message = args.join(' ');
+      if (message.includes('Failed to fetch') &&
+          (message.includes('events.mapbox.com') ||
+           message.includes('telemetry') ||
+           message.includes('analytics'))) {
+        console.log('🚫 Suppressed telemetry console error');
+        return;
+      }
+      return originalConsoleError.apply(this, args);
+    };
+
+    window.__TELEMETRY_BLOCKED__ = true;
+  }
+
   const [selectedTalhao, setSelectedTalhao] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
@@ -20,7 +42,7 @@ const Talhoes = () => {
     status: 'livre'
   });
   const [showNewTalhaoForm, setShowNewTalhaoForm] = useState(false);
-  
+
   const mapContainer = useRef(null);
   const map = useRef(null);
   const draw = useRef(null);
@@ -861,7 +883,7 @@ const Talhoes = () => {
               opacity: (!mapLoaded || isInitializing || tokenValid === false) ? 0.6 : 1
             }}
           >
-            {drawMode ? '🛑' : '🖊️'} 
+            {drawMode ? '🛑' : '���️'} 
             {drawMode ? 'Cancelar Desenho' : 'Desenhar Novo Talhão'}
           </button>
 
