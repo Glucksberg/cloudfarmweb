@@ -45,21 +45,30 @@ export const getMapboxConfig = () => ({
 
 // Handle Mapbox errors gracefully
 export const handleMapboxError = (error, mapInstance) => {
+  // Ignore abort errors as they're expected during cleanup
+  if (error?.name === 'AbortError') {
+    console.log('📋 Request aborted (expected during cleanup)');
+    return error;
+  }
+
   console.error('🚫 Mapbox Error:', error);
-  
+
   if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
     console.log('🔄 Network error detected, attempting fallback...');
-    
+
     // Try to switch to fallback style
     if (mapInstance && mapInstance.setStyle) {
       try {
         mapInstance.setStyle(getFallbackStyle());
         console.log('✅ Switched to fallback map style');
       } catch (fallbackError) {
-        console.error('❌ Fallback style also failed:', fallbackError);
+        // Don't log abort errors from fallback
+        if (fallbackError?.name !== 'AbortError') {
+          console.error('❌ Fallback style also failed:', fallbackError);
+        }
       }
     }
   }
-  
+
   return error;
 };
