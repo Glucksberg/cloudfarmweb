@@ -1154,50 +1154,92 @@ input:checked + .slider:before {
   .talhoes-container {
     grid-template-columns: 1fr;
   }
-  
+
+  .talhoes-buttons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .map-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .controls-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .map-features {
+    grid-template-columns: 1fr;
+  }
+
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
   }
-  
+
   .team-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .farms-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .filters-row {
     grid-template-columns: 1fr;
   }
-  
+
   .filter-bar,
   .category-tabs,
   .role-filters {
     flex-direction: column;
   }
-  
+
   .filter-btn,
   .category-tab,
   .role-filter {
     justify-content: center;
   }
-  
+
   .logs-table-container {
     overflow-x: auto;
   }
-  
+
   .logs-table {
     min-width: 600px;
   }
-  
+
   .account-actions,
   .system-actions {
     flex-direction: column;
   }
-  
+
   .action-button {
     justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card {
+    padding: 1rem;
+  }
+
+  .weather-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .talhoes-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .controls-grid {
+    grid-template-columns: 1fr;
   }
 }
