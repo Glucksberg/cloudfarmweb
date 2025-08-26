@@ -22,6 +22,7 @@ function App() {
           <Route path="logs" element={<Logs />} />
           <Route path="talhoes" element={<Talhoes />} />
           <Route path="maptest" element={<MapTest />} />
+          <Route path="mapsimple" element={<MapTestSimple />} />
           <Route path="estoque" element={<Estoque />} />
           <Route path="equipe" element={<Equipe />} />
           <Route path="configuracoes" element={<Configuracoes />} />
