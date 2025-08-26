@@ -1406,24 +1406,24 @@ const Talhoes = () => {
       <div className="system-info">
         <div className="info-cards">
           <div className="info-card">
-            <span className="info-icon">📡</span>
+            <span className="info-icon">🌐</span>
             <div className="info-content">
-              <span className="info-title">Coordenadas Base</span>
-              <span className="info-value">-47.15, -15.48</span>
+              <span className="info-title">CloudFarm Status</span>
+              <span className="info-value">{cloudFarmConnected ? 'Conectado' : 'Desconectado'}</span>
             </div>
           </div>
           <div className="info-card">
             <span className="info-icon">����</span>
             <div className="info-content">
               <span className="info-title">Área Total</span>
-              <span className="info-value">{currentTalhoes.reduce((sum, t) => sum + t.area, 0)} ha</span>
+              <span className="info-value">{statistics?.areaTotal?.toFixed(1) || '0'} ha</span>
             </div>
           </div>
           <div className="info-card">
             <span className="info-icon">����</span>
             <div className="info-content">
               <span className="info-title">Talhões Cadastrados</span>
-              <span className="info-value">{currentTalhoes.length} unidades</span>
+              <span className="info-value">{statistics?.total || 0} unidades</span>
             </div>
           </div>
           <div className="info-card">
