@@ -55,7 +55,10 @@ const Talhoes = () => {
 
   // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded || isUpdatingMap) {
+      console.log('⏸️ Skipping talhao update - map busy');
+      return;
+    }
 
     try {
       // Remover destaque anterior
@@ -240,7 +243,7 @@ const Talhoes = () => {
             (url.includes('events.mapbox.com') ||
              url.includes('api.mapbox.com/events') ||
              url.includes('telemetry'))) {
-          console.log('🚫 Blocked XHR telemetry request:', url);
+          console.log('�� Blocked XHR telemetry request:', url);
           // Don't call the original open for blocked requests
           return;
         }
@@ -715,7 +718,7 @@ const Talhoes = () => {
     }
   };
 
-  // Atualizar talh��o selecionado
+  // Atualizar talhão selecionado
   useEffect(() => {
     if (selectedTalhao && mapLoaded) {
       updateSelectedTalhao(selectedTalhao);
