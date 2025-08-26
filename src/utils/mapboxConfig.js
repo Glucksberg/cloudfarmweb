@@ -79,9 +79,12 @@ export const getMapboxConfig = () => ({
 
 // Handle Mapbox errors gracefully
 export const handleMapboxError = (error, mapInstance) => {
-  // Ignore abort errors as they're expected during cleanup
-  if (error?.name === 'AbortError') {
-    console.log('📋 Request aborted (expected during cleanup)');
+  // Ignore all types of abort errors
+  if (error?.name === 'AbortError' ||
+      error?.message?.includes('signal is aborted') ||
+      error?.stack?.includes('abortTile') ||
+      error?.stack?.includes('_abortTile')) {
+    console.log('⏹️ Tile/request aborted (expected during updates)');
     return error;
   }
 
