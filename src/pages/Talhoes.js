@@ -1427,12 +1427,35 @@ const Talhoes = () => {
             </div>
           </div>
           <div className="info-card">
+            <span className="info-icon">🌱</span>
+            <div className="info-content">
+              <span className="info-title">Talhões Plantados</span>
+              <span className="info-value">{statistics?.plantados || 0} unidades</span>
+            </div>
+          </div>
+          <div className="info-card">
+            <span className="info-icon">🟡</span>
+            <div className="info-content">
+              <span className="info-title">Talhões Livres</span>
+              <span className="info-value">{statistics?.livres || 0} unidades</span>
+            </div>
+          </div>
+          <div className="info-card">
             <span className="info-icon">🖊️</span>
             <div className="info-content">
               <span className="info-title">Ferramenta Desenho</span>
               <span className="info-value">{drawMode ? 'Ativa' : 'Inativa'}</span>
             </div>
           </div>
+          {statistics?.culturas && statistics.culturas.length > 0 && (
+            <div className="info-card">
+              <span className="info-icon">🌽</span>
+              <div className="info-content">
+                <span className="info-title">Culturas Ativas</span>
+                <span className="info-value">{statistics.culturas.join(', ')}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
