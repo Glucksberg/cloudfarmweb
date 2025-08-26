@@ -297,28 +297,42 @@ const Talhoes = () => {
         mapboxgl.prewarm();
       }
 
-      // Criar mapa
+      // Criar mapa with comprehensive telemetry blocking
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: config.style,
         center: config.center,
         zoom: config.zoom,
         transformRequest: (url, resourceType) => {
-          // Block telemetry requests that cause fetch errors
-          if (url.includes('events.mapbox.com') ||
-              url.includes('api.mapbox.com/events') ||
-              resourceType === 'Unknown') {
-            return { url: '' }; // Block the request
+          const urlString = typeof url === 'string' ? url : '';
+
+          // Comprehensive blocking of telemetry requests
+          if (urlString.includes('events.mapbox.com') ||
+              urlString.includes('api.mapbox.com/events') ||
+              urlString.includes('api.mapbox.com/ping') ||
+              urlString.includes('telemetry') ||
+              urlString.includes('analytics') ||
+              resourceType === 'Unknown' ||
+              resourceType === 'Analytics') {
+            console.log('🚫 Blocked in transformRequest:', urlString);
+            return { url: '' }; // Block the request completely
           }
+
           return {
             url: url,
             credentials: 'omit'
           };
         },
-        // Prevent excessive tile loading and disable telemetry
-        maxTileCacheSize: 50,
+        // Comprehensive performance and telemetry options
+        maxTileCacheSize: 30,
         collectResourceTiming: false,
-        trackResize: false
+        trackResize: false,
+        preserveDrawingBuffer: false,
+        antialias: false,
+        failIfMajorPerformanceCaveat: false,
+        // Additional options to prevent telemetry
+        attributionControl: false,
+        logoPosition: 'bottom-right'
       });
 
       map.current = mapInstance;
