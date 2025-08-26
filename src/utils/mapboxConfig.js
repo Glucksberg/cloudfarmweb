@@ -32,15 +32,11 @@ export const getMapboxConfig = () => ({
   fallbackStyle: getFallbackStyle(),
   center: [-47.15, -15.48],
   zoom: 12,
-  // Add retry configuration
-  transformRequest: (url, resourceType) => {
-    if (resourceType === 'Tile') {
-      return {
-        url: url,
-        credentials: 'omit' // Prevent CORS issues
-      };
-    }
-  }
+  // Simple transform request without signals (not serializable)
+  transformRequest: (url, resourceType) => ({
+    url: url,
+    credentials: 'omit' // Prevent CORS issues
+  })
 });
 
 // Handle Mapbox errors gracefully
