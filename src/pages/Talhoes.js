@@ -420,6 +420,31 @@ const Talhoes = () => {
     }
   }, [selectedTalhao, mapLoaded]);
 
+  // Atualizar mapa quando currentTalhoes mudar
+  useEffect(() => {
+    if (mapLoaded && map.current && map.current.getSource('talhoes')) {
+      const geojsonData = {
+        type: 'FeatureCollection',
+        features: currentTalhoes.map((talhao) => ({
+          type: 'Feature',
+          properties: {
+            id: talhao.id,
+            nome: talhao.nome,
+            area: talhao.area,
+            cultura: talhao.cultura,
+            status: talhao.status
+          },
+          geometry: talhao.geometry || {
+            type: 'Polygon',
+            coordinates: [getTalhaoCoordinates(talhao.id)]
+          }
+        }))
+      };
+      map.current.getSource('talhoes').setData(geojsonData);
+      console.log('🗺️ Map updated with current talhões:', currentTalhoes.length);
+    }
+  }, [currentTalhoes, mapLoaded]);
+
   // Função para ativar/desativar modo de desenho
   const toggleDrawMode = () => {
     if (!draw.current) return;
