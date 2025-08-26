@@ -56,30 +56,58 @@ const Talhoes = () => {
           ? 'mapbox://styles/mapbox/satellite-v9'  // Satélite
           : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
 
-        console.log('🗺️ Alternando estilo para:', newStyle);
+        console.log('🗺️ Alternando estilo:', prev.satellite ? 'Satélite → Normal' : 'Normal → Satélite');
+        console.log('🔗 URL do estilo:', newStyle);
 
-        // Salvar referência das camadas dos talhões antes de mudar estilo
-        const talhoesData = map.current.getSource('talhoes');
+        try {
+          // Salvar referência das camadas dos talhões antes de mudar estilo
+          const talhoesData = map.current.getSource('talhoes');
+          const hasControls = map.current.hasControl && map.current.hasControl(new mapboxgl.NavigationControl());
 
-        map.current.setStyle(newStyle);
+          map.current.setStyle(newStyle);
 
-        // Recriar camadas dos talhões quando o estilo carregar
-        map.current.once('style.load', () => {
-          console.log('🎨 Novo estilo carregado, recriando camadas...');
-          if (newLayers.talhoes && talhoesData) {
-            setTimeout(() => {
+          // Recriar camadas dos talhões quando o estilo carregar
+          map.current.once('style.load', () => {
+            console.log('🎨 Novo estilo carregado com sucesso!');
+
+            // Recriar controles de navegação se existiam
+            if (!hasControls) {
               try {
-                addTalhoesLayer();
-                // Reaplicar seleção se houver
-                if (selectedTalhao) {
-                  setTimeout(() => updateSelectedTalhao(selectedTalhao), 100);
-                }
-              } catch (error) {
-                console.error('Erro ao recriar camadas:', error);
+                map.current.addControl(new mapboxgl.NavigationControl());
+              } catch (controlError) {
+                console.warn('Aviso: Não foi possível readicionar controles:', controlError);
               }
-            }, 100);
-          }
-        });
+            }
+
+            // Recriar camadas dos talhões se estavam visíveis
+            if (newLayers.talhoes && talhoesData) {
+              setTimeout(() => {
+                try {
+                  addTalhoesLayer();
+                  console.log('✅ Camadas dos talhões recriadas');
+
+                  // Reaplicar seleção se houver
+                  if (selectedTalhao) {
+                    setTimeout(() => {
+                      updateSelectedTalhao(selectedTalhao);
+                      console.log('🎯 Seleção de talhão reaplicada');
+                    }, 200);
+                  }
+                } catch (layerError) {
+                  console.error('❌ Erro ao recriar camadas dos talhões:', layerError);
+                }
+              }, 150);
+            }
+          });
+
+          // Tratamento de erro na mudança de estilo
+          map.current.once('error', (error) => {
+            console.error('❌ Erro ao carregar novo estilo:', error);
+          });
+
+        } catch (styleError) {
+          console.error('❌ Erro ao alterar estilo do mapa:', styleError);
+        }
       }
 
       // Controlar visibilidade das outras camadas
