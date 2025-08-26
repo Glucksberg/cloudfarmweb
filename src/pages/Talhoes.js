@@ -965,6 +965,60 @@ const Talhoes = () => {
         <p>Sistema de mapeamento com desenho interativo de talhões</p>
       </div>
 
+      {/* Status de Conexão CloudFarm */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        marginBottom: '1rem',
+        padding: '0.5rem',
+        backgroundColor: cloudFarmConnected ? '#e8f5e8' : '#fff3cd',
+        border: `1px solid ${cloudFarmConnected ? '#4caf50' : '#ffc107'}`,
+        borderRadius: '4px'
+      }}>
+        <span style={{ fontWeight: 'bold' }}>
+          {cloudFarmConnected ? '🟢 CloudFarm Conectado' : '🟡 CloudFarm Desconectado'}
+        </span>
+        {talhoesLoading && <span>⏳ Carregando...</span>}
+        {talhoesError && (
+          <span style={{ color: '#d32f2f', fontSize: '0.9rem' }}>
+            ❌ {talhoesError}
+          </span>
+        )}
+        {!cloudFarmConnected && (
+          <button
+            onClick={reconnectCloudFarm}
+            style={{
+              padding: '0.25rem 0.5rem',
+              backgroundColor: '#ffc107',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem'
+            }}
+          >
+            🔄 Reconectar
+          </button>
+        )}
+        {talhoesError && (
+          <button
+            onClick={clearTalhoesError}
+            style={{
+              padding: '0.25rem 0.5rem',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.8rem'
+            }}
+          >
+            ✕ Limpar
+          </button>
+        )}
+      </div>
+
       {/* Seleção de Talhões */}
       <div className="talhoes-selection">
         <h3>🌾 Talhões Cadastrados ({currentTalhoes.length})</h3>
@@ -1277,7 +1331,7 @@ const Talhoes = () => {
               backgroundColor: '#ffebee',
               color: '#d32f2f'
             }}>
-              <h3>❌ Erro de Autenticação</h3>
+              <h3>❌ Erro de Autenticaç��o</h3>
               <p>Token do Mapbox inválido ou expirado</p>
               <small>Verifique a configuração do token Mapbox</small>
             </div>
