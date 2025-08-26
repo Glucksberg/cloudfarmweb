@@ -524,21 +524,58 @@ const Talhoes = () => {
           <h3>🗂️ Camadas</h3>
           <div className="layer-list">
             <label className="layer-item">
-              <input type="checkbox" defaultChecked />
-              <span className="layer-name">Base Satellite</span>
+              <input
+                type="checkbox"
+                checked={layers.satellite}
+                onChange={() => toggleMapStyle('satellite')}
+              />
+              <span className="layer-name">
+                🛰️ Imagem de Satélite {layers.satellite && '(Ativo)'}
+              </span>
             </label>
             <label className="layer-item">
-              <input type="checkbox" defaultChecked />
-              <span className="layer-name">Talhões</span>
+              <input
+                type="checkbox"
+                checked={layers.talhoes}
+                onChange={() => toggleMapStyle('talhoes')}
+              />
+              <span className="layer-name">
+                🌾 Talhões {layers.talhoes && '(Visível)'}
+              </span>
             </label>
             <label className="layer-item">
-              <input type="checkbox" />
-              <span className="layer-name">Curvas de Nível</span>
+              <input
+                type="checkbox"
+                checked={layers.curvas}
+                onChange={() => toggleMapStyle('curvas')}
+                disabled
+              />
+              <span className="layer-name">
+                📏 Curvas de Nível (Em breve)
+              </span>
             </label>
             <label className="layer-item">
-              <input type="checkbox" />
-              <span className="layer-name">Drenagem</span>
+              <input
+                type="checkbox"
+                checked={layers.drenagem}
+                onChange={() => toggleMapStyle('drenagem')}
+                disabled
+              />
+              <span className="layer-name">
+                💧 Drenagem (Em breve)
+              </span>
             </label>
+          </div>
+
+          <div style={{
+            marginTop: '1rem',
+            padding: '0.5rem',
+            backgroundColor: '#f0f7ff',
+            borderRadius: '4px',
+            fontSize: '0.8rem',
+            color: '#1976d2'
+          }}>
+            💡 <strong>Dica:</strong> Ative "Imagem de Satélite" para ver fotos aéreas reais da fazenda!
           </div>
         </div>
       </div>
