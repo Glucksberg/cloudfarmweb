@@ -3,6 +3,32 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Pages.css';
 
+// Disable Mapbox telemetry and analytics completely
+if (typeof window !== 'undefined') {
+  // Block Mapbox telemetry
+  window.mapboxgl = window.mapboxgl || {};
+
+  // Override internal functions that send telemetry
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    const url = args[0];
+
+    // Block Mapbox analytics/telemetry requests
+    if (typeof url === 'string' && (
+      url.includes('events.mapbox.com') ||
+      url.includes('/events/') ||
+      url.includes('/turnstile') ||
+      url.includes('/performance') ||
+      url.includes('telemetry')
+    )) {
+      console.log('🚫 Blocking Mapbox telemetry request:', url);
+      return Promise.reject(new Error('Telemetry blocked'));
+    }
+
+    return originalFetch.apply(this, args);
+  };
+}
+
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
