@@ -543,12 +543,8 @@ const Talhoes = () => {
     return () => {
       window.fetch = originalFetch;
       window.XMLHttpRequest = originalXMLHttpRequest;
-      console.error = originalConsoleError;
-      console.warn = originalConsoleWarn;
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handlePromiseRejection);
-      window.onerror = originalWindowOnError;
+      // Console overrides and global error handlers are now managed globally
+      // and persist across component mounts/unmounts for better error suppression
       if (typeof window !== 'undefined') {
         delete window.MAPBOX_DISABLE_TELEMETRY;
       }
