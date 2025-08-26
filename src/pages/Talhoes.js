@@ -585,16 +585,21 @@ const Talhoes = () => {
 
       // Comprehensive error handling
       mapInstance.on('error', (e) => {
-        // Ignore abort errors as they're expected during cleanup
-        if (e.error?.name === 'AbortError') {
-          console.log('📍 Request aborted (expected during cleanup)');
+        const error = e.error || {};
+        const errorMessage = error.message || '';
+        const errorStack = error.stack || '';
+
+        // Ignore abort errors (tiles being cancelled)
+        if (error.name === 'AbortError' ||
+            errorMessage.includes('signal is aborted') ||
+            errorStack.includes('abortTile') ||
+            errorStack.includes('_abortTile') ||
+            errorStack.includes('_removeTile')) {
+          console.log('⏹️ Tile request aborted (expected during updates)');
           return;
         }
 
         // Comprehensive telemetry error filtering
-        const errorMessage = e.error?.message || '';
-        const errorStack = e.error?.stack || '';
-
         const isTelemetryError = errorMessage.includes('Failed to fetch') && (
           errorStack.includes('events.mapbox.com') ||
           errorStack.includes('api.mapbox.com/events') ||
