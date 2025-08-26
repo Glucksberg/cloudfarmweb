@@ -745,12 +745,17 @@ const Talhoes = () => {
     }
   };
 
-  // Atualizar talhão selecionado
+  // Atualizar talhão selecionado (aguardar término de updates do mapa)
   useEffect(() => {
-    if (selectedTalhao && mapLoaded) {
-      updateSelectedTalhao(selectedTalhao);
+    if (selectedTalhao && mapLoaded && !isUpdatingMap) {
+      // Small delay to ensure map updates are complete
+      const timeoutId = setTimeout(() => {
+        updateSelectedTalhao(selectedTalhao);
+      }, 150);
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [selectedTalhao, mapLoaded]);
+  }, [selectedTalhao, mapLoaded, isUpdatingMap]);
 
   // Função para atualizar mapa com debounce
   const updateMapData = useCallback(() => {
