@@ -1100,8 +1100,8 @@ const Talhoes = () => {
 
           <div style={{ marginBottom: '1rem' }}>
             <label>Variedade:</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={newTalhaoData.variedade}
               onChange={(e) => setNewTalhaoData(prev => ({...prev, variedade: e.target.value}))}
               style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
@@ -1109,16 +1109,83 @@ const Talhoes = () => {
             />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
+          {/* Grupo de Maturação/Precocidade baseado na cultura */}
+          {(newTalhaoData.cultura === 'Soja' || newTalhaoData.cultura === 'Milho') && (
+            <div style={{ marginBottom: '1rem' }}>
+              <label>
+                {newTalhaoData.cultura === 'Soja' ? 'Grupo de Maturação:' : 'Precocidade:'}
+              </label>
+              <input
+                type="text"
+                value={newTalhaoData.grupoMaturacao}
+                onChange={(e) => setNewTalhaoData(prev => ({...prev, grupoMaturacao: e.target.value}))}
+                style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                placeholder={newTalhaoData.cultura === 'Soja' ? 'Ex: 6.2' : 'Ex: Precoce'}
+              />
+            </div>
+          )}
+
+          <div style={{ marginBottom: '1rem' }}>
             <label>Status:</label>
-            <select 
+            <select
               value={newTalhaoData.status}
               onChange={(e) => setNewTalhaoData(prev => ({...prev, status: e.target.value}))}
               style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
             >
               <option value="livre">Livre</option>
               <option value="plantado">Plantado</option>
+              <option value="planejado">Planejado</option>
             </select>
+          </div>
+
+          {/* Datas de plantio e colheita (se plantado ou planejado) */}
+          {(newTalhaoData.status === 'plantado' || newTalhaoData.status === 'planejado') && (
+            <>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>Data de Plantio:</label>
+                <input
+                  type="date"
+                  value={newTalhaoData.dataPlantio ? newTalhaoData.dataPlantio.toISOString().split('T')[0] : ''}
+                  onChange={(e) => setNewTalhaoData(prev => ({
+                    ...prev,
+                    dataPlantio: e.target.value ? new Date(e.target.value) : null
+                  }))}
+                  style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                />
+              </div>
+
+              {(newTalhaoData.cultura === 'Soja' || newTalhaoData.cultura === 'Milho') && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label>Colheita Estimada:</label>
+                  <input
+                    type="date"
+                    value={newTalhaoData.colheitaEstimada ? newTalhaoData.colheitaEstimada.toISOString().split('T')[0] : ''}
+                    onChange={(e) => setNewTalhaoData(prev => ({
+                      ...prev,
+                      colheitaEstimada: e.target.value ? new Date(e.target.value) : null
+                    }))}
+                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                  />
+                </div>
+              )}
+            </>
+          )}
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label>Observações:</label>
+            <textarea
+              value={newTalhaoData.observacoes}
+              onChange={(e) => setNewTalhaoData(prev => ({...prev, observacoes: e.target.value}))}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                marginTop: '0.25rem',
+                minHeight: '60px',
+                resize: 'vertical',
+                fontFamily: 'inherit'
+              }}
+              placeholder="Observações adicionais sobre o talhão..."
+            />
           </div>
 
           <div style={{ display: 'flex', gap: '1rem' }}>
