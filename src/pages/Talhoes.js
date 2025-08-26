@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import './Pages.css';
 import './DrawTools.css';
+import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
@@ -645,7 +646,7 @@ const Talhoes = () => {
           zIndex: 1000,
           minWidth: '400px'
         }}>
-          <h3>🆕 Novo Talhão Desenhado</h3>
+          <h3>🆕 Novo Talh��o Desenhado</h3>
           <p>Área calculada: <strong>{calculateArea(drawnGeometry)} hectares</strong></p>
           
           <div style={{ marginBottom: '1rem' }}>
