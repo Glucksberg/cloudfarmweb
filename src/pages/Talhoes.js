@@ -17,6 +17,7 @@ const Talhoes = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const componentMounted = useRef(true);
 
   // Estados para controle de camadas
   const [layers, setLayers] = useState({
@@ -26,8 +27,34 @@ const Talhoes = () => {
     drenagem: false    // Drenagem
   });
 
+  // Adicionar supressor de erros específico para este componente
+  useEffect(() => {
+    const handleError = (event) => {
+      const error = event.error || event.reason;
+      if (error && (error.message?.includes('AbortError') || error.message?.includes('signal is aborted'))) {
+        console.warn('🔇 AbortError suprimido no componente Talhões:', error.message);
+        event.preventDefault();
+        return false;
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleError);
+
+    return () => {
+      componentMounted.current = false;
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleError);
+    };
+  }, []);
+
   // Função para alternar entre estilos de mapa
   const toggleMapStyle = (layerType) => {
+    if (!componentMounted.current) {
+      console.warn('⚠️ Componente desmontado. Operação cancelada.');
+      return;
+    }
+
     if (!map.current || !mapLoaded) {
       console.warn('⚠️ Mapa não carregado ainda. Aguarde...');
       return;
