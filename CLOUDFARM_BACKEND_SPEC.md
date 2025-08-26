@@ -300,10 +300,25 @@ GET /api/estatisticas
 
 ## 🔄 WebSocket (Tempo Real)
 
-### Conexão
+### Conexão Autenticada
 ```javascript
-// Frontend conecta em:
-ws://SEU_VPS_IP:8080/ws
+// Frontend conecta com token JWT:
+const token = "eyJhbGciOiJIUzI1NiIs...";
+const ws = new WebSocket(`ws://SEU_VPS_IP:8080/ws?token=${token}`);
+```
+
+### Validação de Conexão
+O servidor deve validar o token JWT antes de aceitar a conexão WebSocket:
+- Token válido → Conexão aceita
+- Token inválido/ausente → Conexão recusada (código 1008)
+
+### Mensagens de Erro de Autenticação
+```json
+{
+  "type": "auth_error",
+  "error": "Token JWT inválido ou expirado",
+  "code": "INVALID_TOKEN"
+}
 ```
 
 ### Mensagens do Cliente para Servidor
@@ -396,7 +411,7 @@ cloudfarm-api/
 │   ├── models/
 │   │   └── talhao.js
 │   ├── routes/
-│   ��   └── api.js
+│   │   └── api.js
 │   ├── websocket/
 │   │   └── handler.js
 │   └── app.js
