@@ -26,6 +26,7 @@ function App() {
           <Route path="maptest" element={<MapTest />} />
           <Route path="mapsimple" element={<MapTestSimple />} />
           <Route path="mapbasic" element={<MapTestBasic />} />
+          <Route path="mapfinal" element={<MapTestFinal />} />
           <Route path="estoque" element={<Estoque />} />
           <Route path="equipe" element={<Equipe />} />
           <Route path="configuracoes" element={<Configuracoes />} />
