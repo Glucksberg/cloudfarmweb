@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import * as turf from 'turf';
@@ -715,7 +715,7 @@ const Talhoes = () => {
     }
   };
 
-  // Atualizar talhão selecionado
+  // Atualizar talh��o selecionado
   useEffect(() => {
     if (selectedTalhao && mapLoaded) {
       updateSelectedTalhao(selectedTalhao);
