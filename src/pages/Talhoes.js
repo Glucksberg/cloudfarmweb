@@ -40,7 +40,11 @@ const Talhoes = () => {
     nome: '',
     cultura: 'Soja',
     variedade: '',
-    status: 'livre'
+    grupoMaturacao: '',
+    status: 'livre',
+    dataPlantio: null,
+    colheitaEstimada: null,
+    observacoes: ''
   });
   const [showNewTalhaoForm, setShowNewTalhaoForm] = useState(false);
 
@@ -853,7 +857,7 @@ const Talhoes = () => {
     if (drawMode) {
       draw.current.changeMode('simple_select');
       setDrawMode(false);
-      console.log('��� Modo de desenho desativado');
+      console.log('🔧 Modo de desenho desativado');
     } else {
       draw.current.changeMode('draw_polygon');
       setDrawMode(true);
@@ -1027,7 +1031,7 @@ const Talhoes = () => {
               opacity: (!mapLoaded || isInitializing || tokenValid === false) ? 0.6 : 1
             }}
           >
-            {drawMode ? '���' : '���️'} 
+            {drawMode ? '🛑' : '���️'} 
             {drawMode ? 'Cancelar Desenho' : 'Desenhar Novo Talhão'}
           </button>
 
