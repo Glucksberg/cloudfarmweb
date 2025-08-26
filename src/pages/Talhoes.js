@@ -193,9 +193,10 @@ const Talhoes = () => {
       // Criar mapa
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',
-        center: [-47.15, -15.48],
-        zoom: 12
+        style: config.style,
+        center: config.center,
+        zoom: config.zoom,
+        transformRequest: config.transformRequest
       });
 
       map.current = mapInstance;
