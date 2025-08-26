@@ -45,7 +45,10 @@ const Talhoes = () => {
 
   // Função para alternar entre estilos de mapa
   const toggleMapStyle = (layerType) => {
-    if (!map.current || !mapLoaded) return;
+    if (!map.current || !mapLoaded) {
+      console.warn('⚠️ Mapa não carregado ainda. Aguarde...');
+      return;
+    }
 
     setLayers(prev => {
       const newLayers = { ...prev, [layerType]: !prev[layerType] };
