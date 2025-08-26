@@ -263,12 +263,33 @@ const Talhoes = () => {
     mapboxgl.accessToken = config.accessToken;
 
     try {
-      // Explicitly disable Mapbox telemetry to prevent network errors
-      console.log('🚫 Disabling Mapbox telemetry...');
+      // Comprehensive telemetry disabling
+      console.log('🚫 Aggressively disabling all Mapbox telemetry...');
 
-      // Disable telemetry
-      if (typeof mapboxgl.telemetry === 'object' && mapboxgl.telemetry.disable) {
-        mapboxgl.telemetry.disable();
+      // Multiple methods to disable telemetry
+      try {
+        // Method 1: Direct telemetry disable
+        if (mapboxgl.telemetry && typeof mapboxgl.telemetry.disable === 'function') {
+          mapboxgl.telemetry.disable();
+          console.log('✅ Telemetry disabled via mapboxgl.telemetry.disable()');
+        }
+
+        // Method 2: Set telemetry to false
+        if (mapboxgl.telemetry) {
+          mapboxgl.telemetry = false;
+        }
+
+        // Method 3: Disable via config
+        if (mapboxgl.config) {
+          mapboxgl.config.TELEMETRY_ENABLED = false;
+        }
+
+        // Method 4: Set global disable flag
+        mapboxgl.config = mapboxgl.config || {};
+        mapboxgl.config.TELEMETRY_ENABLED = false;
+
+      } catch (telemetryError) {
+        console.log('⚠️ Some telemetry disable methods failed (expected):', telemetryError.message);
       }
 
       // Prewarm if available
