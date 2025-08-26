@@ -11,8 +11,7 @@ const Layout = () => {
   const menuItems = [
     { path: '/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/logs', icon: '📝', label: 'Logs' },
-    { path: '/talhoes', icon: '🌾', label: 'Talhões' },
-    { path: '/mapas', icon: '🗺️', label: 'Mapas' },
+    { path: '/talhoes', icon: '🗺️', label: 'Talhões' },
     { path: '/estoque', icon: '📦', label: 'Estoque' },
     { path: '/equipe', icon: '👥', label: 'Equipe' },
     { path: '/configuracoes', icon: '⚙️', label: 'Configurações' }

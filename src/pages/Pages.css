@@ -265,45 +265,40 @@
   background: #1B5E20;
 }
 
-/* Talhões Page */
-.talhoes-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-}
-
-.talhoes-grid {
+/* Talhões Page - Integrated with Map */
+.talhoes-selection {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
-.talhoes-grid h3 {
+.talhoes-selection h3 {
   color: #2E7D32;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
 .talhoes-buttons {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(10, 1fr);
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .talhao-btn {
   border: 2px solid #E0E0E0;
   border-radius: 8px;
-  padding: 0.5rem;
+  padding: 0.4rem 0.2rem;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #F9F9F9;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-height: 60px;
+  gap: 0.2rem;
+  min-height: 50px;
   justify-content: center;
 }
 
@@ -315,30 +310,96 @@
 .talhao-btn.selected {
   border-width: 3px;
   background: rgba(46, 125, 50, 0.1);
+  box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
 }
 
 .btn-label {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
 }
 
 .btn-area {
   color: #757575;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .btn-status {
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
-.navigation-note {
-  color: #757575;
-  font-size: 0.85rem;
-  text-align: center;
-  background: rgba(46, 125, 50, 0.05);
+.selected-talhao-panel {
+  background: rgba(46, 125, 50, 0.1);
+  border: 2px solid #2E7D32;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.selected-info h3 {
+  color: #2E7D32;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.quick-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-item {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.selected-highlight {
+  background: rgba(46, 125, 50, 0.2);
   padding: 1rem;
   border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.selected-highlight p {
+  margin: 0.25rem 0;
+  color: #2E7D32;
+  font-weight: 500;
+}
+
+.system-info {
+  margin-bottom: 1.5rem;
+}
+
+.talhao-details-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+}
+
+.details-container h3 {
+  color: #2E7D32;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.detail-card {
+  background: #F9F9F9;
+  padding: 1.5rem;
+  border-radius: 8px;
   border-left: 4px solid #2E7D32;
+}
+
+.detail-card h4 {
+  color: #2E7D32;
+  margin-bottom: 1rem;
+  font-size: 1rem;
 }
 
 .info-panel {
@@ -1151,12 +1212,12 @@ input:checked + .slider:before {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .talhoes-container {
-    grid-template-columns: 1fr;
+  .talhoes-buttons {
+    grid-template-columns: repeat(5, 1fr);
   }
 
-  .talhoes-buttons {
-    grid-template-columns: repeat(3, 1fr);
+  .details-grid {
+    grid-template-columns: 1fr;
   }
 
   .map-controls {
@@ -1236,7 +1297,7 @@ input:checked + .slider:before {
   }
 
   .talhoes-buttons {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .controls-grid {
