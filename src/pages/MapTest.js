@@ -155,7 +155,51 @@ const MapTest = () => {
     <div style={{ padding: '2rem' }}>
       <h1>🧪 Teste do Mapbox</h1>
       <p>Verificando se o Mapbox carrega corretamente...</p>
-      
+
+      {/* Status Panel */}
+      <div style={{
+        marginBottom: '1rem',
+        padding: '1rem',
+        backgroundColor: error ? '#ffebee' : '#e8f5e8',
+        border: `2px solid ${error ? '#f44336' : '#4caf50'}`,
+        borderRadius: '8px'
+      }}>
+        <div style={{
+          fontSize: '1rem',
+          fontWeight: 'bold',
+          color: error ? '#d32f2f' : '#2e7d32'
+        }}>
+          Status: {mapStatus}
+        </div>
+        {error && (
+          <div style={{
+            marginTop: '0.5rem',
+            fontSize: '0.9rem',
+            color: '#d32f2f'
+          }}>
+            Erro: {error}
+          </div>
+        )}
+      </div>
+
+      {/* Debug Info */}
+      <div style={{
+        marginBottom: '1rem',
+        padding: '1rem',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '8px',
+        fontSize: '0.9rem'
+      }}>
+        <strong>Informações do Sistema:</strong>
+        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+          <li>Mapbox GL Version: {mapboxgl.version}</li>
+          <li>WebGL Support: {mapboxgl.supported() ? '✅ Sim' : '❌ Não'}</li>
+          <li>Token Configurado: {mapboxgl.accessToken ? '✅ Sim' : '❌ Não'}</li>
+          <li>Container Ref: {mapContainer.current ? '✅ OK' : '❌ Não encontrado'}</li>
+        </ul>
+      </div>
+
+      {/* Map Container */}
       <div
         ref={mapContainer}
         style={{
@@ -163,13 +207,54 @@ const MapTest = () => {
           height: '400px',
           backgroundColor: '#f0f0f0',
           border: '2px solid #ccc',
-          borderRadius: '8px'
+          borderRadius: '8px',
+          position: 'relative'
         }}
-      />
-      
+      >
+        {/* Loading overlay */}
+        {!map.current && !error && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+            zIndex: 1000
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+            <div>Carregando mapa...</div>
+          </div>
+        )}
+
+        {/* Error overlay */}
+        {error && (
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+            zIndex: 1000,
+            padding: '2rem',
+            backgroundColor: 'rgba(255,255,255,0.9)',
+            borderRadius: '8px',
+            border: '2px solid #f44336'
+          }}>
+            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>❌</div>
+            <div style={{ color: '#d32f2f', fontWeight: 'bold' }}>
+              Falha ao carregar o mapa
+            </div>
+            <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+              {error}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
-        <p>📝 Abra o Console do navegador (F12) para ver os logs</p>
-        <p>Se aparecer um mapa, o Mapbox está funcionando!</p>
+        <p>📝 <strong>Console:</strong> Abra o Console do navegador (F12) para ver logs detalhados</p>
+        <p>🔄 <strong>Reload:</strong> Se houver problemas, tente recarregar a página (Ctrl+F5)</p>
+        <p>🌐 <strong>Rede:</strong> Verifique sua conexão com a internet se aparecerem erros de "Failed to fetch"</p>
       </div>
     </div>
   );
