@@ -310,12 +310,18 @@ const Talhoes = () => {
 
       // Evento de carregamento
       mapInstance.on('load', () => {
+        if (abortController.current && abortController.current.signal.aborted) {
+          console.log('⚠️ Map load aborted');
+          return;
+        }
+
         console.log('🎉 Mapa carregado com sucesso!');
-        
+
         // Adicionar polígonos dos talhões existentes
         addTalhoesLayer();
-        
+
         setMapLoaded(true);
+        setIsInitializing(false);
 
         // Listeners para talhões existentes
         mapInstance.on('click', 'talhoes-layer', (e) => {
@@ -374,33 +380,65 @@ const Talhoes = () => {
 
       // Tratamento de erros
       mapInstance.on('error', (e) => {
+        // Ignore abort errors as they're expected during cleanup
+        if (e.error?.name === 'AbortError') {
+          console.log('📍 Request aborted (expected during cleanup)');
+          return;
+        }
+
         const handledError = handleMapboxError(e.error, mapInstance);
         setMapError(`Erro do mapa: ${handledError.message}`);
+        setIsInitializing(false);
       });
 
-      // Handle style load errors
+      // Handle style load
       mapInstance.on('style.load', () => {
+        if (abortController.current && abortController.current.signal.aborted) {
+          return;
+        }
         console.log('✅ Map style loaded successfully');
         setMapError(null);
       });
 
-      // Handle source errors
+      // Handle source errors gracefully
       mapInstance.on('sourcedataerror', (e) => {
+        // Ignore abort errors for source data
+        if (e.error?.name === 'AbortError') {
+          return;
+        }
         console.warn('⚠️ Source data error:', e);
-        // Don't set error for source data issues as they're often recoverable
       });
 
     } catch (error) {
       console.error('❌ Erro ao criar mapa:', error);
       setMapError(`Falha na inicialização: ${error.message}`);
+      setIsInitializing(false);
     }
 
-    // Cleanup
+    // Cleanup function
     return () => {
+      console.log('🧹 Cleaning up map...');
+
+      // Abort any pending requests
+      if (abortController.current) {
+        abortController.current.abort('Component unmounting');
+        abortController.current = null;
+      }
+
+      // Clean up map instance
       if (map.current) {
-        map.current.remove();
+        try {
+          // Remove all event listeners before removing map
+          map.current.off();
+          map.current.remove();
+        } catch (cleanupError) {
+          console.warn('⚠️ Error during map cleanup (expected):', cleanupError.message);
+        }
         map.current = null;
       }
+
+      setIsInitializing(false);
+      setMapLoaded(false);
     };
   }, [tokenValid]);
 
@@ -704,7 +742,7 @@ const Talhoes = () => {
           zIndex: 1000,
           minWidth: '400px'
         }}>
-          <h3>🆕 Novo Talhão Desenhado</h3>
+          <h3>�� Novo Talhão Desenhado</h3>
           <p>Área calculada: <strong>{calculateArea(drawnGeometry)} hectares</strong></p>
           
           <div style={{ marginBottom: '1rem' }}>
