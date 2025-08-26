@@ -15,8 +15,10 @@ const Talhoes = () => {
     console.log('🚫 Immediate telemetry blocking...');
     window.MAPBOX_DISABLE_TELEMETRY = true;
 
-    // Enhanced console.error override to suppress telemetry and abort errors
+    // Enhanced console overrides to suppress telemetry and abort errors
     const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+
     console.error = function(...args) {
       const message = args.join(' ');
       const fullMessage = args.map(arg =>
