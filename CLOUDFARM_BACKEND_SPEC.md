@@ -46,7 +46,128 @@ O frontend calcula o status baseado nas datas:
 - `planejado`: Plantio futuro agendado
 - `colheita`: Período de colheita
 
+## 🔐 Autenticação JWT
+
+### Estrutura do Token JWT
+
+#### Header
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+#### Payload
+```json
+{
+  "sub": "123",
+  "email": "usuario@exemplo.com",
+  "name": "Nome do Usuário",
+  "roles": ["user", "admin"],
+  "farm_id": "farm_001",
+  "iat": 1234567890,
+  "exp": 1234571490
+}
+```
+
+### Middleware de Autenticação
+Todas as rotas protegidas devem verificar o token JWT no header:
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
 ## 🔗 Endpoints REST API
+
+### 🔐 Autenticação
+
+#### 1. Login
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@exemplo.com",
+  "password": "senha123"
+}
+```
+
+**Resposta Sucesso:** (200 OK)
+```json
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": 123,
+    "email": "usuario@exemplo.com",
+    "name": "Nome do Usuário",
+    "roles": ["user", "admin"],
+    "farm_id": "farm_001",
+    "farm_name": "Fazenda São José"
+  },
+  "expiresIn": 3600
+}
+```
+
+**Resposta Erro:** (401 Unauthorized)
+```json
+{
+  "success": false,
+  "error": "Credenciais inválidas",
+  "code": "INVALID_CREDENTIALS"
+}
+```
+
+#### 2. Logout
+```http
+POST /api/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Resposta:** (200 OK)
+```json
+{
+  "success": true,
+  "message": "Logout realizado com sucesso"
+}
+```
+
+#### 3. Renovar Token
+```http
+POST /api/auth/refresh
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Resposta:** (200 OK)
+```json
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expiresIn": 3600
+}
+```
+
+#### 4. Informações do Usuário
+```http
+GET /api/auth/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Resposta:** (200 OK)
+```json
+{
+  "id": 123,
+  "email": "usuario@exemplo.com",
+  "name": "Nome do Usuário",
+  "roles": ["user", "admin"],
+  "farm_id": "farm_001",
+  "farm_name": "Fazenda São José",
+  "last_login": "2024-01-20T08:30:00Z",
+  "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### 📊 Dados Principais
 
 ### 1. Health Check
 ```http
@@ -275,7 +396,7 @@ cloudfarm-api/
 │   ├── models/
 │   │   └── talhao.js
 │   ├── routes/
-│   │   └── api.js
+│   ��   └── api.js
 │   ├── websocket/
 │   │   └── handler.js
 │   └── app.js
