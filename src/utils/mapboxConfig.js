@@ -46,11 +46,20 @@ export const getMapboxConfig = () => ({
   fallbackStyle: getFallbackStyle(),
   center: [-47.15, -15.48],
   zoom: 12,
-  // Simple transform request without signals (not serializable)
-  transformRequest: (url, resourceType) => ({
-    url: url,
-    credentials: 'omit' // Prevent CORS issues
-  })
+  // Transform request to block telemetry and prevent network errors
+  transformRequest: (url, resourceType) => {
+    // Block telemetry requests that cause "Failed to fetch" errors
+    if (url.includes('events.mapbox.com') ||
+        url.includes('api.mapbox.com/events') ||
+        url.includes('/ping') ||
+        resourceType === 'Unknown') {
+      return { url: '' }; // Block the request
+    }
+    return {
+      url: url,
+      credentials: 'omit' // Prevent CORS issues
+    };
+  }
 });
 
 // Handle Mapbox errors gracefully
