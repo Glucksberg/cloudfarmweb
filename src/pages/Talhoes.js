@@ -406,12 +406,6 @@ const Talhoes = () => {
     return () => {
       console.log('🧹 Cleaning up map...');
 
-      // Abort any pending requests
-      if (abortController.current) {
-        abortController.current.abort('Component unmounting');
-        abortController.current = null;
-      }
-
       // Clean up map instance
       if (map.current) {
         try {
