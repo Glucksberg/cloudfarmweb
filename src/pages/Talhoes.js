@@ -722,9 +722,15 @@ const Talhoes = () => {
     }
   }, [selectedTalhao, mapLoaded]);
 
-  // Atualizar mapa quando currentTalhoes mudar
-  useEffect(() => {
-    if (mapLoaded && map.current && map.current.getSource('talhoes')) {
+  // Função para atualizar mapa com debounce
+  const updateMapData = useCallback(() => {
+    if (!mapLoaded || !map.current || !map.current.getSource('talhoes') || isUpdatingMap) {
+      return;
+    }
+
+    try {
+      setIsUpdatingMap(true);
+
       const geojsonData = {
         type: 'FeatureCollection',
         features: currentTalhoes.map((talhao) => {
@@ -747,10 +753,38 @@ const Talhoes = () => {
           };
         })
       };
+
       map.current.getSource('talhoes').setData(geojsonData);
       console.log('🗺️ Map updated with current talhões:', currentTalhoes.length);
+
+      // Reset updating flag after a short delay
+      setTimeout(() => setIsUpdatingMap(false), 100);
+
+    } catch (error) {
+      console.error('❌ Erro ao atualizar dados do mapa:', error);
+      setIsUpdatingMap(false);
     }
-  }, [currentTalhoes, mapLoaded]);
+  }, [mapLoaded, currentTalhoes, isUpdatingMap]);
+
+  // Atualizar mapa quando currentTalhoes mudar (com debounce)
+  useEffect(() => {
+    // Clear any pending updates
+    if (updateTimeout.current) {
+      clearTimeout(updateTimeout.current);
+    }
+
+    // Debounce the update to prevent rapid successive calls
+    updateTimeout.current = setTimeout(() => {
+      updateMapData();
+    }, 200); // 200ms debounce
+
+    // Cleanup
+    return () => {
+      if (updateTimeout.current) {
+        clearTimeout(updateTimeout.current);
+      }
+    };
+  }, [currentTalhoes, updateMapData]);
 
   // Função para ativar/desativar modo de desenho
   const toggleDrawMode = () => {
