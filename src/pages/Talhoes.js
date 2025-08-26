@@ -93,9 +93,20 @@ const Talhoes = () => {
           }
         });
 
-        // Centralizar mapa no talhão selecionado
+        // Centralizar mapa no talhão selecionado usando geometria real
         const bounds = new mapboxgl.LngLatBounds();
-        getTalhaoCoordinates(talhaoId).forEach(coord => bounds.extend(coord));
+
+        // Usar geometria real do talhão se disponível
+        if (selectedTalhaoData.geometry && selectedTalhaoData.geometry.coordinates) {
+          const coordinates = selectedTalhaoData.geometry.coordinates[0]; // Primeiro anel do polígono
+          coordinates.forEach(coord => bounds.extend(coord));
+          console.log('🎯 Navegando para geometria desenhada do talhão:', talhaoId);
+        } else {
+          // Fallback para coordenadas padrão apenas se geometria não estiver disponível
+          getTalhaoCoordinates(talhaoId).forEach(coord => bounds.extend(coord));
+          console.log('⚠️ Usando coordenadas padrão para talhão:', talhaoId);
+        }
+
         map.current.fitBounds(bounds, { padding: 50 });
       }
     } catch (error) {
