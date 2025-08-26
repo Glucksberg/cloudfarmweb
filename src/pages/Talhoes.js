@@ -408,6 +408,25 @@ const Talhoes = () => {
       return false;
     };
 
+    // Additional Promise rejection handler specifically for AbortErrors
+    const handlePromiseRejection = (event) => {
+      const reason = event.reason;
+      if (reason && (
+        reason.name === 'AbortError' ||
+        (typeof reason.message === 'string' && (
+          reason.message.includes('signal is aborted') ||
+          reason.message.includes('aborted without reason')
+        )) ||
+        (typeof reason === 'string' && reason.includes('AbortError'))
+      )) {
+        console.log('⏹️ Promise AbortError rejection suppressed');
+        event.preventDefault();
+        return;
+      }
+    };
+
+    window.addEventListener('unhandledrejection', handlePromiseRejection);
+
     // Cleanup: restore originals when component unmounts
     return () => {
       window.fetch = originalFetch;
