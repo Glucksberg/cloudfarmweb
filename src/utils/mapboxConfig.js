@@ -46,15 +46,30 @@ export const getMapboxConfig = () => ({
   fallbackStyle: getFallbackStyle(),
   center: [-47.15, -15.48],
   zoom: 12,
-  // Transform request to block telemetry and prevent network errors
+  // Comprehensive transform request to block all telemetry
   transformRequest: (url, resourceType) => {
-    // Block telemetry requests that cause "Failed to fetch" errors
-    if (url.includes('events.mapbox.com') ||
-        url.includes('api.mapbox.com/events') ||
-        url.includes('/ping') ||
-        resourceType === 'Unknown') {
-      return { url: '' }; // Block the request
+    const urlString = typeof url === 'string' ? url : '';
+
+    // Comprehensive blocking of all possible telemetry endpoints
+    const telemetryPatterns = [
+      'events.mapbox.com',
+      'api.mapbox.com/events',
+      'api.mapbox.com/ping',
+      'telemetry',
+      'analytics',
+      '/events/',
+      '/ping'
+    ];
+
+    const shouldBlock = telemetryPatterns.some(pattern => urlString.includes(pattern)) ||
+                       resourceType === 'Unknown' ||
+                       resourceType === 'Analytics';
+
+    if (shouldBlock) {
+      console.log('🚫 Config blocked telemetry:', urlString, resourceType);
+      return { url: '' }; // Block the request completely
     }
+
     return {
       url: url,
       credentials: 'omit' // Prevent CORS issues
