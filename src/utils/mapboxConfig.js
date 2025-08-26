@@ -5,8 +5,18 @@ export const MAPBOX_TOKEN = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4
 // Test if Mapbox token is valid
 export const testMapboxToken = async (token = MAPBOX_TOKEN) => {
   try {
-    const response = await fetch(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12?access_token=${token}`);
-    
+    // Use AbortController with timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    const response = await fetch(`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12?access_token=${token}`, {
+      signal: controller.signal,
+      method: 'HEAD', // Use HEAD instead of GET to reduce data transfer
+      cache: 'no-cache'
+    });
+
+    clearTimeout(timeoutId);
+
     if (response.ok) {
       console.log('✅ Mapbox token is valid');
       return { valid: true, status: response.status };
@@ -15,8 +25,12 @@ export const testMapboxToken = async (token = MAPBOX_TOKEN) => {
       return { valid: false, status: response.status, error: response.statusText };
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('❌ Token validation timeout');
+      return { valid: false, error: 'Timeout - check network connection' };
+    }
     console.error('❌ Network error testing Mapbox token:', error);
-    return { valid: false, error: error.message };
+    return { valid: false, error: `Network error: ${error.message}` };
   }
 };
 
