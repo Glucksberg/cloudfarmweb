@@ -4,6 +4,7 @@ import './Pages.css';
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const mapContainer = useRef(null);
   const map = useRef(null);
 
@@ -49,30 +50,45 @@ const Talhoes = () => {
     });
 
     map.current.on('load', () => {
-      // Adicionar polígonos dos talhões
-      addTalhoesLayer();
+      try {
+        // Adicionar polígonos dos talhões
+        addTalhoesLayer();
 
-      // Adicionar listener para clique no mapa
-      map.current.on('click', 'talhoes-layer', (e) => {
-        if (e.features.length > 0) {
-          const talhaoId = e.features[0].properties.id;
-          setSelectedTalhao(talhaoId);
-        }
-      });
+        // Marcar mapa como carregado
+        setMapLoaded(true);
 
-      // Mudar cursor ao passar sobre os talhões
-      map.current.on('mouseenter', 'talhoes-layer', () => {
-        map.current.getCanvas().style.cursor = 'pointer';
-      });
+        // Adicionar listener para clique no mapa
+        map.current.on('click', 'talhoes-layer', (e) => {
+          if (e.features.length > 0) {
+            const talhaoId = e.features[0].properties.id;
+            setSelectedTalhao(talhaoId);
+          }
+        });
 
-      map.current.on('mouseleave', 'talhoes-layer', () => {
-        map.current.getCanvas().style.cursor = '';
-      });
+        // Mudar cursor ao passar sobre os talhões
+        map.current.on('mouseenter', 'talhoes-layer', () => {
+          if (map.current && map.current.getCanvas) {
+            map.current.getCanvas().style.cursor = 'pointer';
+          }
+        });
+
+        map.current.on('mouseleave', 'talhoes-layer', () => {
+          if (map.current && map.current.getCanvas) {
+            map.current.getCanvas().style.cursor = '';
+          }
+        });
+      } catch (error) {
+        console.error('Erro ao configurar mapa:', error);
+      }
     });
 
     return () => {
       if (map.current) {
-        map.current.remove();
+        try {
+          map.current.remove();
+        } catch (error) {
+          console.error('Erro ao remover mapa:', error);
+        }
       }
     };
   }, []);
@@ -132,49 +148,56 @@ const Talhoes = () => {
 
   // Função para destacar talhão selecionado
   useEffect(() => {
-    if (!map.current || !selectedTalhao) return;
+    // Só executar se o mapa estiver carregado e tiver um talhão selecionado
+    if (!map.current || !mapLoaded || !selectedTalhao) return;
 
-    // Remover destaque anterior
-    if (map.current.getLayer('talhao-highlight')) {
-      map.current.removeLayer('talhao-highlight');
-      map.current.removeSource('talhao-highlight');
-    }
+    try {
+      // Remover destaque anterior de forma segura
+      if (map.current.getLayer && map.current.getLayer('talhao-highlight')) {
+        map.current.removeLayer('talhao-highlight');
+      }
+      if (map.current.getSource && map.current.getSource('talhao-highlight')) {
+        map.current.removeSource('talhao-highlight');
+      }
 
-    // Adicionar destaque do talhão selecionado
-    const selectedTalhaoData = talhoes.find(t => t.id === selectedTalhao);
-    if (selectedTalhaoData) {
-      const highlightData = {
-        type: 'FeatureCollection',
-        features: [{
-          type: 'Feature',
-          geometry: {
-            type: 'Polygon',
-            coordinates: [getTalhaoCoordinates(selectedTalhao)]
+      // Adicionar destaque do talhão selecionado
+      const selectedTalhaoData = talhoes.find(t => t.id === selectedTalhao);
+      if (selectedTalhaoData) {
+        const highlightData = {
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [getTalhaoCoordinates(selectedTalhao)]
+            }
+          }]
+        };
+
+        map.current.addSource('talhao-highlight', {
+          type: 'geojson',
+          data: highlightData
+        });
+
+        map.current.addLayer({
+          id: 'talhao-highlight',
+          type: 'line',
+          source: 'talhao-highlight',
+          paint: {
+            'line-color': '#FF0000',
+            'line-width': 4
           }
-        }]
-      };
+        });
 
-      map.current.addSource('talhao-highlight', {
-        type: 'geojson',
-        data: highlightData
-      });
-
-      map.current.addLayer({
-        id: 'talhao-highlight',
-        type: 'line',
-        source: 'talhao-highlight',
-        paint: {
-          'line-color': '#FF0000',
-          'line-width': 4
-        }
-      });
-
-      // Centralizar mapa no talhão selecionado
-      const bounds = new mapboxgl.LngLatBounds();
-      getTalhaoCoordinates(selectedTalhao).forEach(coord => bounds.extend(coord));
-      map.current.fitBounds(bounds, { padding: 50 });
+        // Centralizar mapa no talhão selecionado
+        const bounds = new mapboxgl.LngLatBounds();
+        getTalhaoCoordinates(selectedTalhao).forEach(coord => bounds.extend(coord));
+        map.current.fitBounds(bounds, { padding: 50 });
+      }
+    } catch (error) {
+      console.error('Erro ao destacar talhão:', error);
     }
-  }, [selectedTalhao]);
+  }, [selectedTalhao, mapLoaded]);
 
   const talhoes = [
     { id: 't1', nome: 'T1', area: 145, cultura: 'Milho', variedade: 'Pioneer 30F53', status: 'plantado' },
