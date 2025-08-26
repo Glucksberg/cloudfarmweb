@@ -343,10 +343,14 @@ const Talhoes = () => {
 
       // Event listeners para desenho
       mapInstance.on('draw.create', (e) => {
+        if (abortController.current && abortController.current.signal.aborted) {
+          return;
+        }
+
         console.log('🖊️ Talhão desenhado:', e);
         const feature = e.features[0];
         const validation = validateGeometry(feature.geometry);
-        
+
         if (validation.valid) {
           setDrawnGeometry(feature.geometry);
           setNewTalhaoData(prev => ({
@@ -357,7 +361,9 @@ const Talhoes = () => {
           console.log('✅ Geometria válida. Área:', validation.area, 'ha');
         } else {
           alert(`❌ Erro na geometria: ${validation.error}`);
-          drawInstance.delete(feature.id);
+          if (drawInstance && drawInstance.delete) {
+            drawInstance.delete(feature.id);
+          }
         }
       });
 
@@ -742,7 +748,7 @@ const Talhoes = () => {
           zIndex: 1000,
           minWidth: '400px'
         }}>
-          <h3>�� Novo Talhão Desenhado</h3>
+          <h3>🆕 Novo Talhão Desenhado</h3>
           <p>Área calculada: <strong>{calculateArea(drawnGeometry)} hectares</strong></p>
           
           <div style={{ marginBottom: '1rem' }}>
