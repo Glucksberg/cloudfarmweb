@@ -372,65 +372,7 @@ const Talhoes = () => {
   useEffect(() => {
     console.log('🚫 Setting up comprehensive telemetry blocking...');
 
-    // Store original console functions and override them
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-
-    console.error = function(...args) {
-      const message = args.join(' ');
-      const fullMessage = args.map(arg =>
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-
-      // Suppress telemetry errors
-      if (message.includes('Failed to fetch') &&
-          (message.includes('events.mapbox.com') ||
-           message.includes('telemetry') ||
-           message.includes('analytics'))) {
-        console.log('🚫 Suppressed telemetry console error');
-        return;
-      }
-
-      // Suppress AbortError patterns specifically
-      if (message.includes('AbortError') ||
-          message.includes('signal is aborted without reason') ||
-          fullMessage.includes('Object.cancel') ||
-          fullMessage.includes('Me.abortTile') ||
-          fullMessage.includes('ey._abortTile') ||
-          fullMessage.includes('ey._removeTile') ||
-          fullMessage.includes('ey.update') ||
-          fullMessage.includes('Kt._updateSources') ||
-          fullMessage.includes('Map._render')) {
-        console.log('⏹️ Suppressed AbortError console output');
-        return;
-      }
-
-      return originalConsoleError.apply(this, args);
-    };
-
-    // Also override console.warn for warnings that might contain AbortErrors
-    console.warn = function(...args) {
-      const message = args.join(' ');
-      const fullMessage = args.map(arg =>
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-
-      // Suppress AbortError patterns in warnings
-      if (message.includes('AbortError') ||
-          message.includes('signal is aborted') ||
-          fullMessage.includes('Object.cancel') ||
-          fullMessage.includes('Me.abortTile') ||
-          fullMessage.includes('ey._abortTile') ||
-          fullMessage.includes('ey._removeTile') ||
-          fullMessage.includes('abortTile')) {
-        console.log('⏹️ Suppressed AbortError console warning');
-        return;
-      }
-
-      return originalConsoleWarn.apply(this, args);
-    };
-
-    // Store original fetch
+    // Console overrides are now handled globally, just set up fetch blocking
     const originalFetch = window.fetch;
     const originalXMLHttpRequest = window.XMLHttpRequest;
 
