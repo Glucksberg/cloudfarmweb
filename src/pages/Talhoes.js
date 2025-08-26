@@ -14,65 +14,6 @@ const Talhoes = () => {
   if (typeof window !== 'undefined' && !window.__TELEMETRY_BLOCKED__) {
     console.log('🚫 Immediate telemetry blocking...');
     window.MAPBOX_DISABLE_TELEMETRY = true;
-
-    // Enhanced console overrides to suppress telemetry and abort errors
-    const originalConsoleError = console.error;
-    const originalConsoleWarn = console.warn;
-
-    console.error = function(...args) {
-      const message = args.join(' ');
-      const fullMessage = args.map(arg =>
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-
-      // Suppress telemetry errors
-      if (message.includes('Failed to fetch') &&
-          (message.includes('events.mapbox.com') ||
-           message.includes('telemetry') ||
-           message.includes('analytics'))) {
-        console.log('🚫 Suppressed telemetry console error');
-        return;
-      }
-
-      // Suppress AbortError patterns specifically
-      if (message.includes('AbortError') ||
-          message.includes('signal is aborted without reason') ||
-          fullMessage.includes('Object.cancel') ||
-          fullMessage.includes('Me.abortTile') ||
-          fullMessage.includes('ey._abortTile') ||
-          fullMessage.includes('ey._removeTile') ||
-          fullMessage.includes('ey.update') ||
-          fullMessage.includes('Kt._updateSources') ||
-          fullMessage.includes('Map._render')) {
-        console.log('⏹️ Suppressed AbortError console output');
-        return;
-      }
-
-      return originalConsoleError.apply(this, args);
-    };
-
-    // Also override console.warn for warnings that might contain AbortErrors
-    console.warn = function(...args) {
-      const message = args.join(' ');
-      const fullMessage = args.map(arg =>
-        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-      ).join(' ');
-
-      // Suppress AbortError patterns in warnings
-      if (message.includes('AbortError') ||
-          message.includes('signal is aborted') ||
-          fullMessage.includes('Object.cancel') ||
-          fullMessage.includes('Me.abortTile') ||
-          fullMessage.includes('ey._abortTile') ||
-          fullMessage.includes('ey._removeTile') ||
-          fullMessage.includes('abortTile')) {
-        console.log('⏹️ Suppressed AbortError console warning');
-        return;
-      }
-
-      return originalConsoleWarn.apply(this, args);
-    };
-
     window.__TELEMETRY_BLOCKED__ = true;
   }
 
@@ -708,7 +649,7 @@ const Talhoes = () => {
             nome: `T${currentTalhoes.length + 1}`
           }));
           setShowNewTalhaoForm(true);
-          console.log('✅ Geometria válida. Área:', validation.area, 'ha');
+          console.log('��� Geometria válida. Área:', validation.area, 'ha');
         } else {
           alert(`❌ Erro na geometria: ${validation.error}`);
           if (drawInstance && drawInstance.delete) {
