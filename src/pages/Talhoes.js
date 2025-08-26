@@ -98,15 +98,26 @@ const Talhoes = () => {
         // Centralizar mapa no talhão selecionado usando geometria real
         const bounds = new mapboxgl.LngLatBounds();
 
-        // Usar geometria real do talhão se disponível
-        if (selectedTalhaoData.geometry && selectedTalhaoData.geometry.coordinates) {
+        // Verificar se temos geometria real do talhão
+        const hasRealGeometry = selectedTalhaoData.geometry &&
+                               selectedTalhaoData.geometry.type === 'Polygon' &&
+                               selectedTalhaoData.geometry.coordinates &&
+                               selectedTalhaoData.geometry.coordinates.length > 0 &&
+                               selectedTalhaoData.geometry.coordinates[0].length > 0;
+
+        if (hasRealGeometry) {
           const coordinates = selectedTalhaoData.geometry.coordinates[0]; // Primeiro anel do polígono
-          coordinates.forEach(coord => bounds.extend(coord));
-          console.log('🎯 Navegando para geometria desenhada do talhão:', talhaoId);
+          console.log('🎯 Usando geometria real para navegação:', talhaoId, coordinates.length, 'pontos');
+          coordinates.forEach(coord => {
+            if (Array.isArray(coord) && coord.length >= 2) {
+              bounds.extend(coord);
+            }
+          });
         } else {
-          // Fallback para coordenadas padrão apenas se geometria não estiver disponível
+          // Fallback para coordenadas padrão
+          console.log('⚠️ Geometria real não encontrada, usando coordenadas padrão para:', talhaoId);
+          console.log('   Geometria disponível:', selectedTalhaoData.geometry);
           getTalhaoCoordinates(talhaoId).forEach(coord => bounds.extend(coord));
-          console.log('⚠️ Usando coordenadas padrão para talhão:', talhaoId);
         }
 
         map.current.fitBounds(bounds, { padding: 50 });
