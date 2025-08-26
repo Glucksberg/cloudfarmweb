@@ -1305,6 +1305,123 @@ input:checked + .slider:before {
   }
 }
 
+/* Map Controls Styles */
+.map-controls {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.control-panel h3,
+.layer-panel h3 {
+  color: #2E7D32;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.control-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.control-btn:hover {
+  border-color: #2E7D32;
+  background: rgba(46, 125, 50, 0.05);
+}
+
+.control-icon {
+  font-size: 1.5rem;
+}
+
+.control-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.layer-panel {
+  border-left: 2px solid #E0E0E0;
+  padding-left: 1.5rem;
+}
+
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.layer-item:hover {
+  background: rgba(46, 125, 50, 0.05);
+  border-color: rgba(46, 125, 50, 0.2);
+}
+
+.layer-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #2E7D32;
+}
+
+.layer-item input[type="checkbox"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.layer-item:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.layer-item:has(input:disabled):hover {
+  background: none;
+  border-color: transparent;
+}
+
+.layer-name {
+  font-size: 0.9rem;
+  color: #333;
+  font-weight: 500;
+  user-select: none;
+}
+
+.layer-item:has(input:checked) .layer-name {
+  color: #2E7D32;
+  font-weight: 600;
+}
+
 /* Mapbox Styles */
 .map-container-wrapper {
   background: white;
