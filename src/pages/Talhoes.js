@@ -294,9 +294,22 @@ const Talhoes = () => {
       window.MAPBOX_DISABLE_TELEMETRY = true;
     }
 
-    // Global error handler to catch telemetry and tile abort errors
+    // Enhanced global error handler to catch telemetry and tile abort errors
     const handleGlobalError = (event) => {
       const error = event.error || event.reason;
+
+      // Handle string errors
+      if (typeof error === 'string') {
+        if (error.includes('AbortError') ||
+            error.includes('signal is aborted') ||
+            error.includes('abortTile')) {
+          console.log('⏹️ Global string abort error suppressed:', error);
+          event.preventDefault?.();
+          event.stopPropagation?.();
+          return false;
+        }
+      }
+
       if (error && typeof error.message === 'string') {
         const message = error.message;
         const stack = error.stack || '';
@@ -310,23 +323,38 @@ const Talhoes = () => {
           stack.includes('analytics')
         )) {
           console.log('🚫 Global telemetry error suppressed:', message);
-          event.preventDefault();
-          event.stopPropagation();
+          event.preventDefault?.();
+          event.stopPropagation?.();
           return false;
         }
 
-        // Suppress tile abort errors
+        // Enhanced tile abort error suppression
         if (error.name === 'AbortError' ||
             message.includes('signal is aborted') ||
+            message.includes('aborted without reason') ||
             stack.includes('abortTile') ||
             stack.includes('_abortTile') ||
             stack.includes('_removeTile') ||
-            stack.includes('Me.abortTile')) {
-          console.log('⏹️ Global tile abort error suppressed');
-          event.preventDefault();
-          event.stopPropagation();
+            stack.includes('Me.abortTile') ||
+            stack.includes('ey._abortTile') ||
+            stack.includes('ey._removeTile') ||
+            stack.includes('ey.update') ||
+            stack.includes('Kt._updateSources') ||
+            stack.includes('Map._render') ||
+            stack.includes('Object.cancel')) {
+          console.log('⏹️ Global tile abort error suppressed (enhanced)');
+          event.preventDefault?.();
+          event.stopPropagation?.();
           return false;
         }
+      }
+
+      // Check the error object properties for additional patterns
+      if (error && error.constructor && error.constructor.name === 'AbortError') {
+        console.log('⏹️ Global AbortError constructor suppressed');
+        event.preventDefault?.();
+        event.stopPropagation?.();
+        return false;
       }
     };
 
@@ -366,7 +394,7 @@ const Talhoes = () => {
     // Only initialize when token is confirmed valid and not already initializing
     if (map.current || tokenValid !== true || isInitializing) return;
 
-    console.log('🗺️ Inicializando Mapbox com ferramenta de desenho...');
+    console.log('���️ Inicializando Mapbox com ferramenta de desenho...');
     setIsInitializing(true);
 
     if (!mapContainer.current) {
