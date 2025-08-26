@@ -45,7 +45,7 @@ const Talhoes = () => {
           type: 'FeatureCollection',
           features: [{
             type: 'Feature',
-            geometry: {
+            geometry: selectedTalhaoData.geometry || {
               type: 'Polygon',
               coordinates: [getTalhaoCoordinates(talhaoId)]
             }
@@ -367,7 +367,7 @@ const Talhoes = () => {
           cultura: talhao.cultura,
           status: talhao.status
         },
-        geometry: {
+        geometry: talhao.geometry || {
           type: 'Polygon',
           coordinates: [getTalhaoCoordinates(talhao.id)]
         }
@@ -478,25 +478,44 @@ const Talhoes = () => {
     
     // Recarregar camada dos talhões
     setTimeout(() => {
-      if (map.current.getSource('talhoes')) {
+      const source = map.current.getSource('talhoes');
+      if (source) {
+        // Create features for existing talhões
+        const existingFeatures = currentTalhoes.map(talhao => ({
+          type: 'Feature',
+          properties: {
+            id: talhao.id,
+            nome: talhao.nome,
+            area: talhao.area,
+            cultura: talhao.cultura,
+            status: talhao.status
+          },
+          geometry: talhao.geometry || {
+            type: 'Polygon',
+            coordinates: [getTalhaoCoordinates(talhao.id)]
+          }
+        }));
+
+        // Add the new talhão with its actual drawn geometry
+        const newTalhaoFeature = {
+          type: 'Feature',
+          properties: {
+            id: newTalhao.id,
+            nome: newTalhao.nome,
+            area: newTalhao.area,
+            cultura: newTalhao.cultura,
+            status: newTalhao.status
+          },
+          geometry: newTalhao.geometry // Use the actual drawn geometry
+        };
+
         const updatedGeojson = {
           type: 'FeatureCollection',
-          features: [...currentTalhoes, newTalhao].map((talhao) => ({
-            type: 'Feature',
-            properties: {
-              id: talhao.id,
-              nome: talhao.nome,
-              area: talhao.area,
-              cultura: talhao.cultura,
-              status: talhao.status
-            },
-            geometry: talhao.geometry || {
-              type: 'Polygon',
-              coordinates: [getTalhaoCoordinates(talhao.id)]
-            }
-          }))
+          features: [...existingFeatures, newTalhaoFeature]
         };
-        map.current.getSource('talhoes').setData(updatedGeojson);
+
+        source.setData(updatedGeojson);
+        console.log('✅ Map source updated with new talhão geometry');
       }
     }, 100);
   };
