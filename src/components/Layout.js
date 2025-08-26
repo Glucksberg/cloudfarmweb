@@ -10,9 +10,9 @@ const Layout = () => {
 
   const menuItems = [
     { path: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { path: '/atualizacoes', icon: '🔄', label: 'Atualizações' },
     { path: '/logs', icon: '📝', label: 'Logs' },
-    { path: '/talhoes', icon: '🗺️', label: 'Talhões' },
+    { path: '/talhoes', icon: '🌾', label: 'Talhões' },
+    { path: '/mapas', icon: '🗺️', label: 'Mapas' },
     { path: '/estoque', icon: '📦', label: 'Estoque' },
     { path: '/equipe', icon: '👥', label: 'Equipe' },
     { path: '/configuracoes', icon: '⚙️', label: 'Configurações' }

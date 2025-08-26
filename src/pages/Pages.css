@@ -272,66 +272,73 @@
   gap: 1.5rem;
 }
 
-.map-section {
+.talhoes-grid {
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
+  padding: 1.5rem;
 }
 
-.map-placeholder {
-  padding: 1.5rem;
+.talhoes-grid h3 {
+  color: #2E7D32;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 
-.map-placeholder h3 {
-  color: #2E7D32;
+.talhoes-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
 
-.map-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.map-polygon {
-  border: 3px solid #E0E0E0;
+.talhao-btn {
+  border: 2px solid #E0E0E0;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #F9F9F9;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-height: 60px;
+  justify-content: center;
 }
 
-.map-polygon:hover {
+.talhao-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
-.map-polygon.selected {
-  border-width: 4px;
+.talhao-btn.selected {
+  border-width: 3px;
   background: rgba(46, 125, 50, 0.1);
 }
 
-.polygon-label {
-  display: block;
+.btn-label {
   font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 0.25rem;
-}
-
-.polygon-area {
-  color: #757575;
   font-size: 0.9rem;
 }
 
-.map-note {
+.btn-area {
+  color: #757575;
+  font-size: 0.75rem;
+}
+
+.btn-status {
+  font-size: 1rem;
+}
+
+.navigation-note {
   color: #757575;
   font-size: 0.85rem;
-  font-style: italic;
+  text-align: center;
+  background: rgba(46, 125, 50, 0.05);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #2E7D32;
 }
 
 .info-panel {
@@ -422,8 +429,12 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+}
+
+.talhoes-summary .summary-grid {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .summary-item {
@@ -431,6 +442,15 @@
   padding: 1rem;
   background: #F9F9F9;
   border-radius: 8px;
+  border-left: 4px solid #2E7D32;
+}
+
+.summary-item.plantado {
+  border-left-color: #4CAF50;
+}
+
+.summary-item.livre {
+  border-left-color: #FF9800;
 }
 
 .summary-number {
