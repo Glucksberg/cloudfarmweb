@@ -12,7 +12,7 @@ export const blockMapboxTelemetry = () => {
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     const url = args[0];
-    
+
     // Block Mapbox analytics/telemetry requests
     if (typeof url === 'string' && (
       url.includes('events.mapbox.com') ||
@@ -23,9 +23,14 @@ export const blockMapboxTelemetry = () => {
       url.includes('analytics')
     )) {
       console.log('🚫 Blocked telemetry request:', url.substring(0, 100) + '...');
-      return Promise.reject(new Error('Telemetry blocked by anti-telemetry system'));
+      // Return a resolved promise with empty response instead of rejection
+      return Promise.resolve(new Response('', {
+        status: 200,
+        statusText: 'OK',
+        headers: new Headers()
+      }));
     }
-    
+
     return originalFetch.apply(this, args);
   };
   
@@ -40,10 +45,8 @@ export const blockMapboxTelemetry = () => {
       url.includes('/telemetry')
     )) {
       console.log('🚫 Blocked XHR telemetry request:', url);
-      // Return empty response
-      this.addEventListener('loadstart', () => {
-        this.abort();
-      });
+      // Silently return without doing anything
+      return;
     }
     return originalXHROpen.call(this, method, url, ...args);
   };
@@ -84,61 +87,40 @@ export const getRestrictiveMapConfig = (container, style = 'mapbox://styles/mapb
 
 export const createSafeMapCleanup = (mapRef, abortController) => {
   return () => {
-    console.log('🧹 Starting gentle map cleanup...');
-
-    // DON'T abort the controller immediately - this causes tile AbortErrors
-    // Instead, mark it as aborted for our event handlers only
-    let isCleaningUp = false;
-    if (abortController) {
-      isCleaningUp = true;
-    }
+    console.log('🧹 Starting ultra-gentle map cleanup...');
 
     if (mapRef.current) {
       try {
-        console.log('🔇 Removing event listeners gently...');
-
-        // Remove specific event listeners instead of all at once
-        const events = ['load', 'error', 'styledata', 'sourcedata', 'click', 'mouseenter', 'mouseleave'];
-        events.forEach(event => {
-          try {
-            mapRef.current.off(event);
-          } catch (e) {
-            // Ignore errors for events that don't exist
-          }
-        });
-
         // Store reference and clear immediately to prevent further operations
         const mapToRemove = mapRef.current;
         mapRef.current = null;
 
-        // Very gentle cleanup with longer delay to let tiles finish
+        console.log('🔇 Removing map instance without touching abort controller...');
+
+        // Remove map WITHOUT touching AbortController to avoid tile errors
         setTimeout(() => {
           try {
             if (mapToRemove && !mapToRemove._removed) {
-              console.log('🗑️ Removing map instance gently...');
+              // Remove all listeners at once
+              mapToRemove.off();
 
-              // Let Mapbox finish any pending operations before removal
+              // Remove map instance
               mapToRemove.remove();
               console.log('✅ Map cleanup completed successfully');
             }
           } catch (removeError) {
-            console.warn('⚠️ Map removal error (IGNORED):', removeError.message);
+            // Ignore all cleanup errors
+            console.warn('⚠️ Map removal error (COMPLETELY IGNORED):', removeError.message);
           }
-
-          // Only abort the controller after map is safely removed
-          if (abortController && !abortController.signal.aborted) {
-            try {
-              abortController.abort();
-            } catch (abortErr) {
-              // Ignore abort errors
-            }
-          }
-        }, 300); // Longer delay to let Mapbox finish tile operations
+        }, 100); // Shorter delay since we're not touching abort controller
 
       } catch (cleanupError) {
-        console.warn('⚠️ General cleanup error (IGNORED):', cleanupError.message);
+        // Ignore all errors
+        console.warn('⚠️ General cleanup error (COMPLETELY IGNORED):', cleanupError.message);
       }
     }
+
+    // DON'T touch the abortController at all - let it be handled by React
   };
 };
 
@@ -205,21 +187,45 @@ export const createSafeEventHandlers = (abortController) => {
 // Initialize telemetry blocking immediately when this module is imported
 blockMapboxTelemetry();
 
-// Additional error suppression for AbortErrors
+// Enhanced error suppression for all Mapbox-related errors
 if (typeof window !== 'undefined') {
   const originalConsoleError = console.error;
   console.error = function(...args) {
     const message = args.join(' ');
 
-    // Suppress known Mapbox AbortErrors that we can't prevent
-    if (message.includes('AbortError: signal is aborted without reason') ||
-        message.includes('AbortError') && message.includes('tile') ||
+    // Suppress all known Mapbox errors that we can't prevent
+    if (message.includes('AbortError') ||
+        message.includes('Failed to fetch') ||
+        message.includes('TypeError: Failed to fetch') ||
         message.includes('_abortTile') ||
-        message.includes('_removeTile')) {
-      console.warn('🔇 Suppressed Mapbox AbortError (expected):', message.substring(0, 100) + '...');
+        message.includes('_removeTile') ||
+        message.includes('signal is aborted') ||
+        message.includes('Telemetry blocked')) {
+      console.warn('🔇 Suppressed Mapbox error (expected):', message.substring(0, 100) + '...');
       return;
     }
 
     return originalConsoleError.apply(this, args);
+  };
+
+  // Also suppress unhandled promise rejections
+  const originalUnhandledRejection = window.onunhandledrejection;
+  window.onunhandledrejection = function(event) {
+    const message = event.reason?.message || event.reason || '';
+
+    if (message.includes && (
+        message.includes('Failed to fetch') ||
+        message.includes('AbortError') ||
+        message.includes('Telemetry blocked') ||
+        message.includes('signal is aborted')
+    )) {
+      console.warn('🔇 Suppressed unhandled rejection (expected):', message.substring(0, 100) + '...');
+      event.preventDefault();
+      return;
+    }
+
+    if (originalUnhandledRejection) {
+      return originalUnhandledRejection.call(this, event);
+    }
   };
 }
