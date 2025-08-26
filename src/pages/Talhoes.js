@@ -2,49 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Pages.css';
-import {
-  blockMapboxTelemetry,
-  getRestrictiveMapConfig,
-  createSafeMapCleanup,
-  createSafeEventHandlers
-} from '../utils/mapboxConfig';
-
-// Ensure telemetry is blocked
-blockMapboxTelemetry();
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const componentMounted = useRef(true);
 
-  // Sempre usar satélite + labels (sem alternância)
-
-  // Adicionar supressor de erros específico para este componente
-  useEffect(() => {
-    const handleError = (event) => {
-      const error = event.error || event.reason;
-      if (error && (error.message?.includes('AbortError') || error.message?.includes('signal is aborted'))) {
-        console.warn('🔇 AbortError suprimido no componente Talhões:', error.message);
-        event.preventDefault();
-        return false;
-      }
-    };
-
-    window.addEventListener('error', handleError);
-    window.addEventListener('unhandledrejection', handleError);
-
-    return () => {
-      componentMounted.current = false;
-      window.removeEventListener('error', handleError);
-      window.removeEventListener('unhandledrejection', handleError);
-    };
-  }, []);
-
-  // Não precisa mais de função para alternar - sempre satélite + labels
-
-  // Função para atualizar talhão selecionado (extraída para reutilização)
+  // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
     if (!map.current || !mapLoaded) return;
 
@@ -96,13 +61,6 @@ const Talhoes = () => {
     }
   };
 
-  // Configurar Mapbox Token (usar variável de ambiente)
-  mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
-
-  // Debug - verificar token
-  console.log('Mapbox Token:', mapboxgl.accessToken ? 'Token carregado' : 'Token não encontrado');
-  console.log('Token length:', mapboxgl.accessToken?.length);
-
   // Dados de exemplo dos talhões com coordenadas
   const getTalhaoCoordinates = (talhaoId) => {
     const coordinates = {
@@ -130,11 +88,11 @@ const Talhoes = () => {
     return coordinates[talhaoId] || [];
   };
 
-  // Inicializar Mapbox
+  // Inicializar Mapbox - VERSÃO SIMPLES
   useEffect(() => {
-    if (map.current) return; // Mapa já inicializado
+    if (map.current) return; // Já inicializado
 
-    console.log('🗺️ Inicializando Mapbox Talhões (sem AbortController)...');
+    console.log('🗺️ Inicializando Mapbox (versão simples, sem bloqueios)...');
 
     // Verificações básicas
     if (!mapContainer.current) {
@@ -144,147 +102,79 @@ const Talhoes = () => {
 
     if (!mapboxgl.supported()) {
       console.error('❌ WebGL não suportado');
-      if (mapContainer.current) {
-        mapContainer.current.innerHTML = `
-          <div style="padding: 2rem; text-align: center; color: red;">
-            <h3>🚫 Navegador não suportado</h3>
-            <p>Este navegador não suporta Mapbox GL JS</p>
-            <p>Tente usar Chrome, Firefox ou Safari</p>
-          </div>
-        `;
-      }
       return;
     }
 
     // Configurar token
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
 
-    if (!mapboxgl.accessToken) {
-      console.error('❌ Token do Mapbox não encontrado!');
-      return;
-    }
-
-    console.log('✅ Token Mapbox:', mapboxgl.accessToken.substring(0, 20) + '...');
-
     try {
-      // Usar configuração restritiva sempre com satélite + labels
-      const mapConfig = getRestrictiveMapConfig(
-        mapContainer.current,
-        'mapbox://styles/mapbox/satellite-streets-v12',  // Sempre satélite + labels
-        [-47.15, -15.48],
-        12
-      );
+      // Criar mapa - SIMPLES, sem overrides ou configurações especiais
+      const mapInstance = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Sempre satélite + labels
+        center: [-47.15, -15.48],
+        zoom: 12
+      });
 
-      console.log('🔧 Criando mapa com configuração anti-telemetria...');
-      const mapInstance = new mapboxgl.Map(mapConfig);
       map.current = mapInstance;
+      console.log('✅ Mapa criado com sucesso!');
 
       // Adicionar controles de navegação
       mapInstance.addControl(new mapboxgl.NavigationControl());
-      console.log('🎮 Controles de navegação adicionados');
 
+      // Evento de carregamento
       mapInstance.on('load', () => {
-        if (!componentMounted.current) return;
         console.log('🎉 Mapa carregado com sucesso!');
-        try {
-          // Adicionar polígonos dos talhões
-          addTalhoesLayer();
+        
+        // Adicionar polígonos dos talhões
+        addTalhoesLayer();
+        
+        // Marcar como carregado
+        setMapLoaded(true);
 
-          // Marcar mapa como carregado
-          setMapLoaded(true);
-          console.log('✅ Layers adicionadas e mapa marcado como carregado');
+        // Adicionar listeners de interação
+        mapInstance.on('click', 'talhoes-layer', (e) => {
+          if (e.features.length > 0) {
+            const talhaoId = e.features[0].properties.id;
+            console.log('🎯 Talhão clicado:', talhaoId);
+            setSelectedTalhao(talhaoId);
+          }
+        });
 
-          // Adicionar listener para clique no mapa
-          mapInstance.on('click', 'talhoes-layer', (e) => {
-            if (!componentMounted.current) return;
-            try {
-              if (e.features.length > 0) {
-                const talhaoId = e.features[0].properties.id;
-                console.log('🎯 Talhão clicado no mapa:', talhaoId);
-                setSelectedTalhao(talhaoId);
-              }
-            } catch (error) {
-              console.warn('⚠️ Erro no clique do talhão (ignorado):', error.message);
-            }
-          });
+        // Cursor pointer nos talhões
+        mapInstance.on('mouseenter', 'talhoes-layer', () => {
+          mapInstance.getCanvas().style.cursor = 'pointer';
+        });
 
-          // Mudar cursor ao passar sobre os talhões
-          mapInstance.on('mouseenter', 'talhoes-layer', () => {
-            if (!componentMounted.current) return;
-            try {
-              if (mapInstance && mapInstance.getCanvas) {
-                mapInstance.getCanvas().style.cursor = 'pointer';
-              }
-            } catch (error) {
-              console.warn('⚠️ Erro no mouseenter (ignorado):', error.message);
-            }
-          });
-
-          mapInstance.on('mouseleave', 'talhoes-layer', () => {
-            if (!componentMounted.current) return;
-            try {
-              if (mapInstance && mapInstance.getCanvas) {
-                mapInstance.getCanvas().style.cursor = '';
-              }
-            } catch (error) {
-              console.warn('⚠️ Erro no mouseleave (ignorado):', error.message);
-            }
-          });
-        } catch (error) {
-          console.error('❌ Erro ao configurar mapa:', error);
-        }
+        mapInstance.on('mouseleave', 'talhoes-layer', () => {
+          mapInstance.getCanvas().style.cursor = '';
+        });
       });
 
+      // Tratamento básico de erros
       mapInstance.on('error', (e) => {
-        if (!componentMounted.current) return;
-        const errorMsg = e.error?.message || 'Unknown error';
-        if (!errorMsg.includes('AbortError') && !errorMsg.includes('Failed to fetch')) {
-          console.error('❌ Erro do Mapbox:', e.error);
-        }
+        console.error('❌ Erro do Mapbox:', e.error);
       });
 
     } catch (error) {
       console.error('❌ Erro ao criar mapa:', error);
-      if (mapContainer.current) {
-        mapContainer.current.innerHTML = `
-          <div style="padding: 2rem; text-align: center; color: red;">
-            <h3>❌ Erro ao carregar o mapa</h3>
-            <p><strong>Detalhes:</strong> ${error.message}</p>
-            <p><small>Verifique a conexão de internet e o token do Mapbox</small></p>
-          </div>
-        `;
-      }
-      return;
     }
 
-    // Cleanup simples sem AbortController
+    // Cleanup simples
     return () => {
-      componentMounted.current = false;
       if (map.current) {
-        try {
-          const mapToRemove = map.current;
-          map.current = null;
-
-          setTimeout(() => {
-            try {
-              if (mapToRemove && !mapToRemove._removed) {
-                mapToRemove.remove();
-                console.log('✅ Mapa removido com sucesso');
-              }
-            } catch (err) {
-              // Ignorar erros de cleanup
-            }
-          }, 100);
-        } catch (err) {
-          // Ignorar erros de cleanup
-        }
+        map.current.remove();
+        map.current = null;
       }
     };
   }, []);
 
   // Função para adicionar camada dos talhões
   const addTalhoesLayer = () => {
-    console.log('Adicionando layers dos talhões...');
+    if (!map.current) return;
+
+    console.log('🌾 Adicionando camada dos talhões...');
 
     const geojsonData = {
       type: 'FeatureCollection',
@@ -304,54 +194,60 @@ const Talhoes = () => {
       }))
     };
 
-    console.log('GeoJSON data:', geojsonData);
+    try {
+      map.current.addSource('talhoes', {
+        type: 'geojson',
+        data: geojsonData
+      });
 
-    map.current.addSource('talhoes', {
-      type: 'geojson',
-      data: geojsonData
-    });
+      // Layer de preenchimento
+      map.current.addLayer({
+        id: 'talhoes-layer',
+        type: 'fill',
+        source: 'talhoes',
+        paint: {
+          'fill-color': [
+            'case',
+            ['==', ['get', 'status'], 'plantado'], '#4CAF50',
+            ['==', ['get', 'status'], 'livre'], '#FF9800',
+            '#757575'
+          ],
+          'fill-opacity': 0.6
+        }
+      });
 
-    // Layer de preenchimento
-    map.current.addLayer({
-      id: 'talhoes-layer',
-      type: 'fill',
-      source: 'talhoes',
-      paint: {
-        'fill-color': [
-          'case',
-          ['==', ['get', 'status'], 'plantado'], '#4CAF50',
-          ['==', ['get', 'status'], 'livre'], '#FF9800',
-          '#757575'
-        ],
-        'fill-opacity': 0.6
-      }
-    });
+      // Layer de borda
+      map.current.addLayer({
+        id: 'talhoes-border',
+        type: 'line',
+        source: 'talhoes',
+        paint: {
+          'line-color': '#FFFFFF',
+          'line-width': 2
+        }
+      });
 
-    // Layer de borda
-    map.current.addLayer({
-      id: 'talhoes-border',
-      type: 'line',
-      source: 'talhoes',
-      paint: {
-        'line-color': '#FFFFFF',
-        'line-width': 2
-      }
-    });
+      console.log('✅ Camadas dos talhões adicionadas!');
+    } catch (error) {
+      console.error('❌ Erro ao adicionar camadas:', error);
+    }
   };
 
-  // Função para destacar talhão selecionado
+  // Atualizar talhão selecionado
   useEffect(() => {
-    if (!selectedTalhao) return;
-    updateSelectedTalhao(selectedTalhao);
+    if (selectedTalhao && mapLoaded) {
+      updateSelectedTalhao(selectedTalhao);
+    }
   }, [selectedTalhao, mapLoaded]);
 
+  // Dados dos talhões
   const talhoes = [
     { id: 't1', nome: 'T1', area: 145, cultura: 'Milho', variedade: 'Pioneer 30F53', status: 'plantado' },
     { id: 't2', nome: 'T2', area: 120, cultura: 'Soja', variedade: 'TMG 7262', status: 'plantado' },
     { id: 't3', nome: 'T3', area: 89, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
     { id: 't4', nome: 'T4', area: 156, cultura: 'Milho', variedade: 'SYN 505', status: 'plantado' },
     { id: 't5', nome: 'T5', area: 98, cultura: 'Soja', variedade: 'OLIMPO', status: 'livre' },
-    { id: 't6', nome: 'T6', area: 203, cultura: 'Algod��o', variedade: 'FM 993', status: 'plantado' },
+    { id: 't6', nome: 'T6', area: 203, cultura: 'Algodão', variedade: 'FM 993', status: 'plantado' },
     { id: 't7', nome: 'T7', area: 167, cultura: 'Milho', variedade: 'SYN 480', status: 'livre' },
     { id: 't8', nome: 'T8', area: 134, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
     { id: 't9', nome: 'T9', area: 189, cultura: 'Sorgo', variedade: 'BRS 330', status: 'livre' },
@@ -388,7 +284,7 @@ const Talhoes = () => {
     <div className="page-container">
       <div className="page-header">
         <h1>🗺️ Talhões e Mapa</h1>
-        <p>Sistema integrado de mapeamento e gestão de talhões</p>
+        <p>Sistema de mapeamento com vista satelital e nomes de cidades</p>
       </div>
 
       {/* Seleção de Talhões */}
@@ -483,9 +379,11 @@ const Talhoes = () => {
               fontSize: '0.9rem',
               color: '#2e7d32'
             }}>
-              🗺️ Você está vendo imagens aéreas reais + nomes de cidades e estradas
+              🗺️ Imagens aéreas reais + nomes de cidades e estradas
               <br />
-              🌾 Talhões visíveis com cores de status (verde = plantado, laranja = livre)
+              🌾 Talhões com cores de status (verde = plantado, laranja = livre)
+              <br />
+              📡 <small>Telemetria Mapbox habilitada (normal)</small>
             </p>
           </div>
         </div>
@@ -500,22 +398,33 @@ const Talhoes = () => {
             width: '100%',
             height: '500px',
             backgroundColor: '#f0f0f0',
-            border: '2px dashed #ccc',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            border: '2px solid #4caf50',
+            borderRadius: '8px'
           }}
         >
-          {/* Mapa Mapbox */}
           {!mapLoaded && (
-            <div className="map-loading">
-              <h3>����️ Carregando Mapa...</h3>
-              <p>Inicializando Mapbox GL JS</p>
+            <div className="map-loading" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%'
+            }}>
+              <h3>🗺️ Carregando Mapa Satelital...</h3>
+              <p>Inicializando Mapbox (versão simplificada)</p>
             </div>
           )}
 
-          {selectedTalhao && (
-            <div className="map-overlay">
+          {selectedTalhao && mapLoaded && (
+            <div className="map-overlay" style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              zIndex: 1000,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              padding: '0.5rem',
+              borderRadius: '4px'
+            }}>
               <div className="selected-indicator">
                 🎯 Talhão {selectedTalhao.toUpperCase()} selecionado
               </div>
