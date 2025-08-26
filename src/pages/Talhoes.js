@@ -569,13 +569,28 @@ const Talhoes = () => {
 
           <div style={{
             marginTop: '1rem',
-            padding: '0.5rem',
-            backgroundColor: '#f0f7ff',
-            borderRadius: '4px',
-            fontSize: '0.8rem',
-            color: '#1976d2'
+            padding: '0.75rem',
+            backgroundColor: layers.satellite ? '#e8f5e8' : '#f0f7ff',
+            borderRadius: '6px',
+            fontSize: '0.85rem',
+            color: layers.satellite ? '#2e7d32' : '#1976d2',
+            border: `1px solid ${layers.satellite ? '#c8e6c9' : '#bbdefb'}`
           }}>
-            💡 <strong>Dica:</strong> Ative "Imagem de Satélite" para ver fotos aéreas reais da fazenda!
+            {layers.satellite ? (
+              <>
+                🛰️ <strong>Vista Satelital Ativa!</strong> Você está vendo imagens aéreas reais da fazenda.
+                <br />
+                <small>💡 Dica: Clique nos talhões (T1, T2...) para destacá-los no mapa.</small>
+              </>
+            ) : (
+              <>
+                💡 <strong>Como ver imagens de satélite:</strong>
+                <br />
+                ✅ Marque "Imagem de Satélite" acima para ver fotos aéreas reais!
+                <br />
+                🌾 Mantenha "Talhões" ativo para ver as divisões sobrepostas.
+              </>
+            )}
           </div>
         </div>
       </div>
