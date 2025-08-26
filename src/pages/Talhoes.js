@@ -414,6 +414,7 @@ const Talhoes = () => {
       window.XMLHttpRequest = originalXMLHttpRequest;
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleGlobalError);
+      window.onerror = originalWindowOnError;
       if (typeof window !== 'undefined') {
         delete window.MAPBOX_DISABLE_TELEMETRY;
       }
