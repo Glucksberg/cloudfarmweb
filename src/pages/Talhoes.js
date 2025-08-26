@@ -195,7 +195,15 @@ const Talhoes = () => {
     mapboxgl.accessToken = config.accessToken;
 
     try {
-      // Disable Mapbox telemetry to prevent network errors
+      // Explicitly disable Mapbox telemetry to prevent network errors
+      console.log('🚫 Disabling Mapbox telemetry...');
+
+      // Disable telemetry
+      if (typeof mapboxgl.telemetry === 'object' && mapboxgl.telemetry.disable) {
+        mapboxgl.telemetry.disable();
+      }
+
+      // Prewarm if available
       if (typeof mapboxgl.prewarm === 'function') {
         mapboxgl.prewarm();
       }
