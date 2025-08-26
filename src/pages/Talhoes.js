@@ -1,13 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import * as turf from 'turf';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import './Pages.css';
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [drawMode, setDrawMode] = useState(false);
+  const [drawnGeometry, setDrawnGeometry] = useState(null);
+  const [newTalhaoData, setNewTalhaoData] = useState({
+    nome: '',
+    cultura: 'Soja',
+    variedade: '',
+    status: 'livre'
+  });
+  const [showNewTalhaoForm, setShowNewTalhaoForm] = useState(false);
+  
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const draw = useRef(null);
+  const [currentTalhoes, setCurrentTalhoes] = useState([]);
 
   // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
@@ -23,7 +38,7 @@ const Talhoes = () => {
       }
 
       // Adicionar destaque do talhão selecionado
-      const selectedTalhaoData = talhoes.find(t => t.id === talhaoId);
+      const selectedTalhaoData = currentTalhoes.find(t => t.id === talhaoId);
       if (selectedTalhaoData) {
         const highlightData = {
           type: 'FeatureCollection',
@@ -61,6 +76,51 @@ const Talhoes = () => {
     }
   };
 
+  // Função para calcular área usando Turf
+  const calculateArea = (geometry) => {
+    try {
+      const feature = {
+        type: 'Feature',
+        geometry: geometry
+      };
+      const area = turf.area(feature);
+      return (area / 10000).toFixed(2); // Converter de m² para hectares
+    } catch (error) {
+      console.error('Erro ao calcular área:', error);
+      return 0;
+    }
+  };
+
+  // Função para validar geometria
+  const validateGeometry = (geometry) => {
+    try {
+      if (!geometry || geometry.type !== 'Polygon') {
+        return { valid: false, error: 'Geometria deve ser um polígono' };
+      }
+
+      const feature = {
+        type: 'Feature',
+        geometry: geometry
+      };
+
+      // Verificar se o polígono é válido
+      const area = turf.area(feature);
+      if (area < 100) { // Menor que 100m²
+        return { valid: false, error: 'Área muito pequena (mínimo 100m²)' };
+      }
+
+      // Verificar se não tem auto-interseções (kinks)
+      const kinks = turf.kinks(feature);
+      if (kinks.features.length > 0) {
+        return { valid: false, error: 'Polígono não pode ter auto-interseções' };
+      }
+
+      return { valid: true, area: (area / 10000).toFixed(2) };
+    } catch (error) {
+      return { valid: false, error: error.message };
+    }
+  };
+
   // Dados de exemplo dos talhões com coordenadas
   const getTalhaoCoordinates = (talhaoId) => {
     const coordinates = {
@@ -88,13 +148,12 @@ const Talhoes = () => {
     return coordinates[talhaoId] || [];
   };
 
-  // Inicializar Mapbox - VERSÃO SIMPLES
+  // Inicializar Mapbox com ferramenta de desenho
   useEffect(() => {
-    if (map.current) return; // Já inicializado
+    if (map.current) return;
 
-    console.log('🗺️ Inicializando Mapbox (versão simples, sem bloqueios)...');
+    console.log('🗺️ Inicializando Mapbox com ferramenta de desenho...');
 
-    // Verificações básicas
     if (!mapContainer.current) {
       console.error('❌ Container do mapa não encontrado!');
       return;
@@ -109,16 +168,96 @@ const Talhoes = () => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
 
     try {
-      // Criar mapa - SIMPLES, sem overrides ou configurações especiais
+      // Criar mapa
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12', // Sempre satélite + labels
+        style: 'mapbox://styles/mapbox/satellite-streets-v12',
         center: [-47.15, -15.48],
         zoom: 12
       });
 
       map.current = mapInstance;
-      console.log('✅ Mapa criado com sucesso!');
+
+      // Configurar Mapbox Draw
+      const drawInstance = new MapboxDraw({
+        displayControlsDefault: false,
+        controls: {
+          polygon: true,
+          trash: true
+        },
+        defaultMode: 'simple_select',
+        styles: [
+          // Estilo para polígonos em desenho
+          {
+            'id': 'gl-draw-polygon-fill-inactive',
+            'type': 'fill',
+            'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
+            'paint': {
+              'fill-color': '#3bb2d0',
+              'fill-outline-color': '#3bb2d0',
+              'fill-opacity': 0.3
+            }
+          },
+          {
+            'id': 'gl-draw-polygon-fill-active',
+            'type': 'fill',
+            'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+            'paint': {
+              'fill-color': '#fbb03b',
+              'fill-outline-color': '#fbb03b',
+              'fill-opacity': 0.3
+            }
+          },
+          {
+            'id': 'gl-draw-polygon-stroke-inactive',
+            'type': 'line',
+            'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
+            'layout': {
+              'line-cap': 'round',
+              'line-join': 'round'
+            },
+            'paint': {
+              'line-color': '#3bb2d0',
+              'line-width': 3
+            }
+          },
+          {
+            'id': 'gl-draw-polygon-stroke-active',
+            'type': 'line',
+            'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Polygon']],
+            'layout': {
+              'line-cap': 'round',
+              'line-join': 'round'
+            },
+            'paint': {
+              'line-color': '#fbb03b',
+              'line-width': 3
+            }
+          },
+          // Vértices
+          {
+            'id': 'gl-draw-point-point-stroke-inactive',
+            'type': 'circle',
+            'filter': ['all', ['==', 'active', 'false'], ['==', '$type', 'Point'], ['==', 'meta', 'vertex'], ['!=', 'mode', 'static']],
+            'paint': {
+              'circle-radius': 5,
+              'circle-color': '#fff'
+            }
+          },
+          {
+            'id': 'gl-draw-point-point-stroke-active',
+            'type': 'circle',
+            'filter': ['all', ['==', 'active', 'true'], ['==', '$type', 'Point'], ['==', 'meta', 'vertex']],
+            'paint': {
+              'circle-radius': 7,
+              'circle-color': '#fff'
+            }
+          }
+        ]
+      });
+
+      draw.current = drawInstance;
+      mapInstance.addControl(drawInstance);
 
       // Adicionar controles de navegação
       mapInstance.addControl(new mapboxgl.NavigationControl());
@@ -127,13 +266,12 @@ const Talhoes = () => {
       mapInstance.on('load', () => {
         console.log('🎉 Mapa carregado com sucesso!');
         
-        // Adicionar polígonos dos talhões
+        // Adicionar polígonos dos talhões existentes
         addTalhoesLayer();
         
-        // Marcar como carregado
         setMapLoaded(true);
 
-        // Adicionar listeners de interação
+        // Listeners para talhões existentes
         mapInstance.on('click', 'talhoes-layer', (e) => {
           if (e.features.length > 0) {
             const talhaoId = e.features[0].properties.id;
@@ -142,7 +280,6 @@ const Talhoes = () => {
           }
         });
 
-        // Cursor pointer nos talhões
         mapInstance.on('mouseenter', 'talhoes-layer', () => {
           mapInstance.getCanvas().style.cursor = 'pointer';
         });
@@ -152,7 +289,44 @@ const Talhoes = () => {
         });
       });
 
-      // Tratamento básico de erros
+      // Event listeners para desenho
+      mapInstance.on('draw.create', (e) => {
+        console.log('🖊️ Talhão desenhado:', e);
+        const feature = e.features[0];
+        const validation = validateGeometry(feature.geometry);
+        
+        if (validation.valid) {
+          setDrawnGeometry(feature.geometry);
+          setNewTalhaoData(prev => ({
+            ...prev,
+            nome: `T${currentTalhoes.length + 1}`
+          }));
+          setShowNewTalhaoForm(true);
+          console.log('✅ Geometria válida. Área:', validation.area, 'ha');
+        } else {
+          alert(`❌ Erro na geometria: ${validation.error}`);
+          drawInstance.delete(feature.id);
+        }
+      });
+
+      mapInstance.on('draw.update', (e) => {
+        console.log('✏️ Talhão editado:', e);
+        const feature = e.features[0];
+        const validation = validateGeometry(feature.geometry);
+        
+        if (!validation.valid) {
+          alert(`❌ Erro na geometria: ${validation.error}`);
+          drawInstance.delete(feature.id);
+        }
+      });
+
+      mapInstance.on('draw.delete', (e) => {
+        console.log('🗑️ Talhão deletado:', e);
+        setDrawnGeometry(null);
+        setShowNewTalhaoForm(false);
+      });
+
+      // Tratamento de erros
       mapInstance.on('error', (e) => {
         console.error('❌ Erro do Mapbox:', e.error);
       });
@@ -161,13 +335,18 @@ const Talhoes = () => {
       console.error('❌ Erro ao criar mapa:', error);
     }
 
-    // Cleanup simples
+    // Cleanup
     return () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
+  }, []);
+
+  // Inicializar talhões
+  useEffect(() => {
+    setCurrentTalhoes(initialTalhoes);
   }, []);
 
   // Função para adicionar camada dos talhões
@@ -178,7 +357,7 @@ const Talhoes = () => {
 
     const geojsonData = {
       type: 'FeatureCollection',
-      features: talhoes.map((talhao) => ({
+      features: currentTalhoes.map((talhao) => ({
         type: 'Feature',
         properties: {
           id: talhao.id,
@@ -240,8 +419,89 @@ const Talhoes = () => {
     }
   }, [selectedTalhao, mapLoaded]);
 
-  // Dados dos talhões
-  const talhoes = [
+  // Função para ativar/desativar modo de desenho
+  const toggleDrawMode = () => {
+    if (!draw.current) return;
+
+    if (drawMode) {
+      draw.current.changeMode('simple_select');
+      setDrawMode(false);
+      console.log('🔧 Modo de desenho desativado');
+    } else {
+      draw.current.changeMode('draw_polygon');
+      setDrawMode(true);
+      console.log('🖊️ Modo de desenho ativado');
+    }
+  };
+
+  // Função para salvar novo talhão
+  const saveNewTalhao = () => {
+    if (!drawnGeometry) return;
+
+    const validation = validateGeometry(drawnGeometry);
+    if (!validation.valid) {
+      alert(`❌ Erro na geometria: ${validation.error}`);
+      return;
+    }
+
+    const newTalhao = {
+      id: `t${currentTalhoes.length + 1}`,
+      nome: newTalhaoData.nome || `T${currentTalhoes.length + 1}`,
+      area: parseFloat(validation.area),
+      cultura: newTalhaoData.cultura,
+      variedade: newTalhaoData.variedade,
+      status: newTalhaoData.status,
+      geometry: drawnGeometry // Armazenar geometria real
+    };
+
+    setCurrentTalhoes(prev => [...prev, newTalhao]);
+    
+    // Limpar formulário
+    setShowNewTalhaoForm(false);
+    setDrawnGeometry(null);
+    setNewTalhaoData({
+      nome: '',
+      cultura: 'Soja',
+      variedade: '',
+      status: 'livre'
+    });
+
+    // Sair do modo de desenho
+    if (draw.current) {
+      draw.current.deleteAll();
+      draw.current.changeMode('simple_select');
+      setDrawMode(false);
+    }
+
+    console.log('✅ Novo talhão salvo:', newTalhao);
+    
+    // Recarregar camada dos talhões
+    setTimeout(() => {
+      if (map.current.getSource('talhoes')) {
+        const updatedGeojson = {
+          type: 'FeatureCollection',
+          features: [...currentTalhoes, newTalhao].map((talhao) => ({
+            type: 'Feature',
+            properties: {
+              id: talhao.id,
+              nome: talhao.nome,
+              area: talhao.area,
+              cultura: talhao.cultura,
+              status: talhao.status
+            },
+            geometry: talhao.geometry || {
+              type: 'Polygon',
+              coordinates: [getTalhaoCoordinates(talhao.id)]
+            }
+          }))
+        };
+        map.current.getSource('talhoes').setData(updatedGeojson);
+      }
+    }, 100);
+  };
+
+  // Dados dos talhões iniciais
+  const initialTalhoes = [
     { id: 't1', nome: 'T1', area: 145, cultura: 'Milho', variedade: 'Pioneer 30F53', status: 'plantado' },
     { id: 't2', nome: 'T2', area: 120, cultura: 'Soja', variedade: 'TMG 7262', status: 'plantado' },
     { id: 't3', nome: 'T3', area: 89, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
@@ -251,17 +511,7 @@ const Talhoes = () => {
     { id: 't7', nome: 'T7', area: 167, cultura: 'Milho', variedade: 'SYN 480', status: 'livre' },
     { id: 't8', nome: 'T8', area: 134, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
     { id: 't9', nome: 'T9', area: 189, cultura: 'Sorgo', variedade: 'BRS 330', status: 'livre' },
-    { id: 't10', nome: 'T10', area: 145, cultura: 'Soja', variedade: 'TMG 7262', status: 'plantado' },
-    { id: 't11', nome: 'T11', area: 112, cultura: 'Milho', variedade: 'Pioneer 30F53', status: 'livre' },
-    { id: 't12', nome: 'T12', area: 178, cultura: 'Algodão', variedade: 'FM 993', status: 'plantado' },
-    { id: 't13', nome: 'T13', area: 156, cultura: 'Soja', variedade: 'OLIMPO', status: 'livre' },
-    { id: 't14', nome: 'T14', area: 134, cultura: 'Milho', variedade: 'SYN 505', status: 'plantado' },
-    { id: 't15', nome: 'T15', area: 167, cultura: 'Soja', variedade: 'TMG 7262', status: 'plantado' },
-    { id: 't16', nome: 'T16', area: 189, cultura: 'Sorgo', variedade: 'BRS 330', status: 'livre' },
-    { id: 't17', nome: 'T17', area: 145, cultura: 'Milho', variedade: 'Pioneer 30F53', status: 'plantado' },
-    { id: 't18', nome: 'T18', area: 123, cultura: 'Soja', variedade: 'OLIMPO', status: 'livre' },
-    { id: 't19', nome: 'T19', area: 198, cultura: 'Algodão', variedade: 'FM 993', status: 'plantado' },
-    { id: 't20', nome: 'T20', area: 167, cultura: 'Milho', variedade: 'SYN 480', status: 'livre' }
+    { id: 't10', nome: 'T10', area: 145, cultura: 'Soja', variedade: 'TMG 7262', status: 'plantado' }
   ];
 
   const getStatusColor = (status) => {
@@ -284,14 +534,14 @@ const Talhoes = () => {
     <div className="page-container">
       <div className="page-header">
         <h1>🗺️ Talhões e Mapa</h1>
-        <p>Sistema de mapeamento com vista satelital e nomes de cidades</p>
+        <p>Sistema de mapeamento com desenho interativo de talhões</p>
       </div>
 
       {/* Seleção de Talhões */}
       <div className="talhoes-selection">
-        <h3>🌾 Seleção de Talhões</h3>
+        <h3>🌾 Talhões Cadastrados ({currentTalhoes.length})</h3>
         <div className="talhoes-buttons">
-          {talhoes.map((talhao) => (
+          {currentTalhoes.map((talhao) => (
             <button
               key={talhao.id}
               className={`talhao-btn ${selectedTalhao === talhao.id ? 'selected' : ''}`}
@@ -306,14 +556,11 @@ const Talhoes = () => {
             </button>
           ))}
         </div>
-        <p className="integration-note">
-          💡 <strong>Interação:</strong> Clique em um talhão acima para destacá-lo no mapa abaixo.
-        </p>
 
         {selectedTalhao && (
           <div className="selected-talhao-panel">
             {(() => {
-              const talhao = talhoes.find(t => t.id === selectedTalhao);
+              const talhao = currentTalhoes.find(t => t.id === selectedTalhao);
               return (
                 <div className="selected-info">
                   <h3>{getStatusIcon(talhao.status)} {talhao.nome} - {talhao.area}ha</h3>
@@ -333,61 +580,168 @@ const Talhoes = () => {
         )}
       </div>
 
-      {/* Controles do Mapa */}
-      <div className="map-controls">
-        <div className="control-panel">
-          <h3>🎛️ Controles do Mapa</h3>
-          <div className="controls-grid">
-            <button className="control-btn">
-              <span className="control-icon">🌾</span>
-              <span className="control-label">Talhões</span>
-            </button>
-            <button className="control-btn">
-              <span className="control-icon">📍</span>
-              <span className="control-label">Máquinas</span>
-            </button>
-            <button className="control-btn">
-              <span className="control-icon">🚿</span>
-              <span className="control-label">Aplicações</span>
-            </button>
-            <button className="control-btn">
-              <span className="control-icon">📏</span>
-              <span className="control-label">Medir Área</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="layer-panel">
-          <h3>🛰️ Vista Satelital</h3>
-          <div style={{
-            padding: '1rem',
-            backgroundColor: '#e8f5e8',
-            borderRadius: '8px',
-            border: '2px solid #4caf50'
-          }}>
-            <div style={{
+      {/* Ferramentas de Desenho */}
+      <div className="draw-tools">
+        <h3>🖊️ Ferramentas de Desenho</h3>
+        <div className="draw-controls">
+          <button 
+            className={`draw-btn ${drawMode ? 'active' : ''}`}
+            onClick={toggleDrawMode}
+            style={{
+              backgroundColor: drawMode ? '#2196f3' : '#f0f0f0',
+              color: drawMode ? 'white' : '#333',
+              border: `2px solid ${drawMode ? '#2196f3' : '#ccc'}`,
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '0.5rem'
+              gap: '0.5rem'
+            }}
+          >
+            {drawMode ? '🛑' : '🖊️'} 
+            {drawMode ? 'Cancelar Desenho' : 'Desenhar Novo Talhão'}
+          </button>
+
+          {drawMode && (
+            <div style={{
+              padding: '1rem',
+              backgroundColor: '#e3f2fd',
+              borderRadius: '8px',
+              border: '1px solid #2196f3',
+              marginTop: '1rem'
             }}>
-              <span style={{ fontSize: '1.2rem' }}>✅</span>
-              <strong>Satélite + Labels Ativo</strong>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#1976d2' }}>
+                <strong>📋 Instruções:</strong>
+                <br />
+                • Clique no mapa para adicionar pontos do polígono
+                <br />
+                • Clique no primeiro ponto novamente para fechar
+                <br />
+                • Use as ferramentas do Mapbox Draw para editar
+              </p>
             </div>
-            <p style={{
-              margin: 0,
-              fontSize: '0.9rem',
-              color: '#2e7d32'
-            }}>
-              🗺️ Imagens aéreas reais + nomes de cidades e estradas
-              <br />
-              🌾 Talhões com cores de status (verde = plantado, laranja = livre)
-              <br />
-              📡 <small>Telemetria Mapbox habilitada (normal)</small>
-            </p>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Formulário para Novo Talhão */}
+      {showNewTalhaoForm && drawnGeometry && (
+        <div className="new-talhao-form" style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: 'white',
+          padding: '2rem',
+          borderRadius: '12px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+          zIndex: 1000,
+          minWidth: '400px'
+        }}>
+          <h3>🆕 Novo Talhão Desenhado</h3>
+          <p>Área calculada: <strong>{calculateArea(drawnGeometry)} hectares</strong></p>
+          
+          <div style={{ marginBottom: '1rem' }}>
+            <label>Nome do Talhão:</label>
+            <input 
+              type="text" 
+              value={newTalhaoData.nome}
+              onChange={(e) => setNewTalhaoData(prev => ({...prev, nome: e.target.value}))}
+              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label>Cultura:</label>
+            <select 
+              value={newTalhaoData.cultura}
+              onChange={(e) => setNewTalhaoData(prev => ({...prev, cultura: e.target.value}))}
+              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+            >
+              <option value="Soja">Soja</option>
+              <option value="Milho">Milho</option>
+              <option value="Algodão">Algodão</option>
+              <option value="Sorgo">Sorgo</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label>Variedade:</label>
+            <input 
+              type="text" 
+              value={newTalhaoData.variedade}
+              onChange={(e) => setNewTalhaoData(prev => ({...prev, variedade: e.target.value}))}
+              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+              placeholder="Ex: TMG 7262"
+            />
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label>Status:</label>
+            <select 
+              value={newTalhaoData.status}
+              onChange={(e) => setNewTalhaoData(prev => ({...prev, status: e.target.value}))}
+              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+            >
+              <option value="livre">Livre</option>
+              <option value="plantado">Plantado</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button 
+              onClick={saveNewTalhao}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              ✅ Salvar Talhão
+            </button>
+            <button 
+              onClick={() => {
+                setShowNewTalhaoForm(false);
+                setDrawnGeometry(null);
+                draw.current?.deleteAll();
+              }}
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              ❌ Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Overlay para formulário */}
+      {showNewTalhaoForm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 999
+        }} />
+      )}
 
       {/* Container do Mapa */}
       <div className="map-container-wrapper">
@@ -396,10 +750,11 @@ const Talhoes = () => {
           className="mapbox-container"
           style={{
             width: '100%',
-            height: '500px',
+            height: '600px',
             backgroundColor: '#f0f0f0',
             border: '2px solid #4caf50',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            position: 'relative'
           }}
         >
           {!mapLoaded && (
@@ -410,24 +765,41 @@ const Talhoes = () => {
               justifyContent: 'center',
               height: '100%'
             }}>
-              <h3>🗺️ Carregando Mapa Satelital...</h3>
-              <p>Inicializando Mapbox (versão simplificada)</p>
+              <h3>🗺️ Carregando Mapa com Ferramenta de Desenho...</h3>
+              <p>Inicializando Mapbox GL Draw</p>
             </div>
           )}
 
-          {selectedTalhao && mapLoaded && (
-            <div className="map-overlay" style={{
+          {/* Indicador de modo de desenho */}
+          {drawMode && mapLoaded && (
+            <div style={{
               position: 'absolute',
               top: '10px',
               left: '10px',
+              zIndex: 1000,
+              backgroundColor: 'rgba(33, 150, 243, 0.9)',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '20px',
+              fontSize: '0.9rem',
+              fontWeight: 'bold'
+            }}>
+              🖊️ MODO DESENHO ATIVO
+            </div>
+          )}
+
+          {/* Indicador de talhão selecionado */}
+          {selectedTalhao && mapLoaded && (
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
               zIndex: 1000,
               backgroundColor: 'rgba(255,255,255,0.9)',
               padding: '0.5rem',
               borderRadius: '4px'
             }}>
-              <div className="selected-indicator">
-                🎯 Talhão {selectedTalhao.toUpperCase()} selecionado
-              </div>
+              🎯 Talhão {selectedTalhao.toUpperCase()} selecionado
             </div>
           )}
         </div>
@@ -447,81 +819,25 @@ const Talhoes = () => {
             <span className="info-icon">📏</span>
             <div className="info-content">
               <span className="info-title">Área Total</span>
-              <span className="info-value">{talhoes.reduce((sum, t) => sum + t.area, 0)} ha</span>
+              <span className="info-value">{currentTalhoes.reduce((sum, t) => sum + t.area, 0)} ha</span>
             </div>
           </div>
           <div className="info-card">
             <span className="info-icon">🌾</span>
             <div className="info-content">
-              <span className="info-title">Talhões Ativos</span>
-              <span className="info-value">{talhoes.length} unidades</span>
+              <span className="info-title">Talhões Cadastrados</span>
+              <span className="info-value">{currentTalhoes.length} unidades</span>
             </div>
           </div>
           <div className="info-card">
-            <span className="info-icon">🌱</span>
+            <span className="info-icon">🖊️</span>
             <div className="info-content">
-              <span className="info-title">Plantados</span>
-              <span className="info-value">{talhoes.filter(t => t.status === 'plantado').length} talhões</span>
+              <span className="info-title">Ferramenta Desenho</span>
+              <span className="info-value">{drawMode ? 'Ativa' : 'Inativa'}</span>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Detalhes do Talhão Selecionado */}
-      {selectedTalhao && (
-        <div className="talhao-details-section">
-          {(() => {
-            const talhao = talhoes.find(t => t.id === selectedTalhao);
-            return (
-              <div className="details-container">
-                <h3>📊 Detalhes - {talhao.nome}</h3>
-                <div className="details-grid">
-                  <div className="detail-card">
-                    <h4>🌿 Informações Gerais</h4>
-                    <div className="detail-item">
-                      <span className="detail-label">Área:</span>
-                      <span className="detail-value">{talhao.area} hectares</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Cultura:</span>
-                      <span className="detail-value">{talhao.cultura}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Variedade:</span>
-                      <span className="detail-value">{talhao.variedade}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label">Status:</span>
-                      <span
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(talhao.status) }}
-                      >
-                        {getStatusIcon(talhao.status)} {talhao.status}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="detail-card">
-                    <h4>📋 Histórico de Operações</h4>
-                    <div className="history-item">
-                      <span className="history-date">25/08</span>
-                      <span className="history-operation">{talhao.status === 'plantado' ? 'Plantio realizado' : 'Colheita finalizada'}</span>
-                    </div>
-                    <div className="history-item">
-                      <span className="history-date">22/08</span>
-                      <span className="history-operation">{talhao.status === 'plantado' ? 'Aplicação de fertilizante' : 'Preparo do solo'}</span>
-                    </div>
-                    <div className="history-item">
-                      <span className="history-date">18/08</span>
-                      <span className="history-operation">Análise de solo</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
     </div>
   );
 };
