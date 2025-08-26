@@ -535,8 +535,8 @@
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -546,6 +546,11 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease;
+}
+
+.product-card.compact {
+  padding: 1rem;
+  min-height: auto;
 }
 
 .product-card:hover {
@@ -566,6 +571,12 @@
   margin: 0;
 }
 
+.product-card.compact .product-name {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
 .stock-status {
   font-size: 0.8rem;
   font-weight: 600;
@@ -582,10 +593,19 @@
   color: #2E7D32;
 }
 
+.product-card.compact .quantity-value {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
 .quantity-unit {
   color: #757575;
   font-size: 0.9rem;
   margin-left: 0.5rem;
+}
+
+.product-content {
+  text-align: center;
 }
 
 .stock-level {
@@ -645,46 +665,18 @@
   background: #E0E0E0;
 }
 
-.low-stock-alert {
-  background: rgba(244, 67, 54, 0.1);
-  border: 1px solid rgba(244, 67, 54, 0.3);
+.stock-info {
+  background: rgba(46, 125, 50, 0.1);
+  border: 1px solid rgba(46, 125, 50, 0.3);
   border-radius: 12px;
   padding: 1.5rem;
+  text-align: center;
 }
 
-.low-stock-alert h3 {
-  color: #F44336;
-  margin-bottom: 1rem;
-}
-
-.alert-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.alert-item {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 8px;
-  align-items: center;
-}
-
-.alert-product {
-  font-weight: 500;
-  color: #333;
-}
-
-.alert-quantity {
-  color: #757575;
-}
-
-.alert-level {
-  color: #F44336;
-  font-weight: 600;
+.info-text {
+  color: #2E7D32;
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 /* Equipe Page */
@@ -1144,7 +1136,8 @@ input:checked + .slider:before {
   }
   
   .products-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
   
   .team-grid {
