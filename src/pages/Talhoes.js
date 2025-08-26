@@ -7,6 +7,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import './Pages.css';
 import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
+import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 
 const Talhoes = () => {
   // Immediate telemetry blocking before any state initialization
@@ -46,7 +47,19 @@ const Talhoes = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const draw = useRef(null);
-  const [currentTalhoes, setCurrentTalhoes] = useState([]);
+  // CloudFarm integration
+  const {
+    talhoes: currentTalhoes,
+    loading: talhoesLoading,
+    error: talhoesError,
+    connected: cloudFarmConnected,
+    statistics,
+    createTalhao: createCloudFarmTalhao,
+    updateTalhao: updateCloudFarmTalhao,
+    deleteTalhao: deleteCloudFarmTalhao,
+    reconnect: reconnectCloudFarm,
+    clearError: clearTalhoesError
+  } = useCloudFarmTalhoes();
   const [mapError, setMapError] = useState(null);
   const [tokenValid, setTokenValid] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
@@ -691,10 +704,8 @@ const Talhoes = () => {
     };
   }, [tokenValid]);
 
-  // Inicializar talhões
-  useEffect(() => {
-    setCurrentTalhoes(initialTalhoes);
-  }, []);
+  // Note: Talhões são agora carregados automaticamente via useCloudFarmTalhoes
+  // Dados iniciais de exemplo removidos em favor dos dados reais do CloudFarm
 
   // Função para adicionar camada dos talhões
   const addTalhoesLayer = () => {
