@@ -66,6 +66,8 @@ const Talhoes = () => {
 
       // Adicionar destaque do talhão selecionado
       const selectedTalhaoData = currentTalhoes.find(t => t.id === talhaoId);
+      console.log('🔍 Talhão selecionado:', talhaoId, selectedTalhaoData);
+
       if (selectedTalhaoData) {
         const highlightData = {
           type: 'FeatureCollection',
