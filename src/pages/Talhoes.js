@@ -27,6 +27,8 @@ const Talhoes = () => {
   const [currentTalhoes, setCurrentTalhoes] = useState([]);
   const [mapError, setMapError] = useState(null);
   const [tokenValid, setTokenValid] = useState(null);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const abortController = useRef(null);
 
   // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
@@ -170,33 +172,54 @@ const Talhoes = () => {
 
   // Inicializar Mapbox com ferramenta de desenho
   useEffect(() => {
-    if (map.current || tokenValid === false) return;
+    // Only initialize when token is confirmed valid and not already initializing
+    if (map.current || tokenValid !== true || isInitializing) return;
 
     console.log('🗺️ Inicializando Mapbox com ferramenta de desenho...');
+    setIsInitializing(true);
 
     if (!mapContainer.current) {
       console.error('❌ Container do mapa não encontrado!');
       setMapError('Container do mapa não encontrado');
+      setIsInitializing(false);
       return;
     }
 
     if (!mapboxgl.supported()) {
       console.error('❌ WebGL não suportado');
       setMapError('WebGL não é suportado pelo navegador');
+      setIsInitializing(false);
       return;
     }
 
+    // Create abort controller for this initialization
+    abortController.current = new AbortController();
     const config = getMapboxConfig();
     mapboxgl.accessToken = config.accessToken;
 
     try {
-      // Criar mapa
+      // Criar mapa com configurações de abort
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: config.style,
         center: config.center,
         zoom: config.zoom,
-        transformRequest: config.transformRequest
+        transformRequest: (url, resourceType) => {
+          // Add abort signal to prevent hanging requests
+          const request = {
+            url: url,
+            credentials: 'omit'
+          };
+
+          if (abortController.current && !abortController.current.signal.aborted) {
+            request.signal = abortController.current.signal;
+          }
+
+          return request;
+        },
+        // Prevent excessive tile loading
+        maxTileCacheSize: 50,
+        collectResourceTiming: false
       });
 
       map.current = mapInstance;
