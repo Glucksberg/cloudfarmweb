@@ -35,6 +35,14 @@ const Talhoes = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
 
+  // Estados para controle de camadas
+  const [layers, setLayers] = useState({
+    satellite: false,  // Começar com mapa normal
+    talhoes: true,     // Talhões visíveis
+    curvas: false,     // Curvas de nível
+    drenagem: false    // Drenagem
+  });
+
   // Configurar Mapbox Token (usar variável de ambiente)
   mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
 
