@@ -153,26 +153,71 @@ const Talhoes = () => {
     return coordinates[talhaoId] || [];
   };
 
-  // Block telemetry requests globally to prevent fetch errors
+  // Aggressively block all telemetry before any Mapbox initialization
   useEffect(() => {
-    const originalFetch = window.fetch;
+    console.log('🚫 Setting up comprehensive telemetry blocking...');
 
+    // Store original fetch
+    const originalFetch = window.fetch;
+    const originalXMLHttpRequest = window.XMLHttpRequest;
+
+    // Override fetch with comprehensive blocking
     window.fetch = function(...args) {
       const url = args[0];
-      if (typeof url === 'string' &&
-          (url.includes('events.mapbox.com') ||
-           url.includes('api.mapbox.com/events') ||
-           url.includes('/ping'))) {
-        // Return a fake successful response for telemetry requests
-        console.log('🚫 Blocking telemetry request:', url);
-        return Promise.resolve(new Response('{}', { status: 200 }));
+      const urlString = typeof url === 'string' ? url : (url && url.url) || '';
+
+      // Block all telemetry and analytics requests
+      if (urlString.includes('events.mapbox.com') ||
+          urlString.includes('api.mapbox.com/events') ||
+          urlString.includes('api.mapbox.com/ping') ||
+          urlString.includes('telemetry') ||
+          urlString.includes('analytics') ||
+          urlString.match(/\/events\/[^\/]*$/)) {
+        console.log('🚫 Blocked telemetry request:', urlString);
+        return Promise.resolve(new Response('{"status":"blocked"}', {
+          status: 200,
+          statusText: 'Blocked by client',
+          headers: { 'Content-Type': 'application/json' }
+        }));
       }
       return originalFetch.apply(this, args);
     };
 
-    // Cleanup: restore original fetch when component unmounts
+    // Override XMLHttpRequest for older telemetry methods
+    window.XMLHttpRequest = function() {
+      const xhr = new originalXMLHttpRequest();
+      const originalOpen = xhr.open;
+      xhr.open = function(method, url, ...args) {
+        if (typeof url === 'string' &&
+            (url.includes('events.mapbox.com') ||
+             url.includes('api.mapbox.com/events') ||
+             url.includes('telemetry'))) {
+          console.log('🚫 Blocked XHR telemetry request:', url);
+          // Don't call the original open for blocked requests
+          return;
+        }
+        return originalOpen.apply(this, [method, url, ...args]);
+      };
+      return xhr;
+    };
+
+    // Set environment variable to disable telemetry
+    if (typeof process !== 'undefined' && process.env) {
+      process.env.MAPBOX_DISABLE_TELEMETRY = 'true';
+    }
+
+    // Global telemetry disable
+    if (typeof window !== 'undefined') {
+      window.MAPBOX_DISABLE_TELEMETRY = true;
+    }
+
+    // Cleanup: restore originals when component unmounts
     return () => {
       window.fetch = originalFetch;
+      window.XMLHttpRequest = originalXMLHttpRequest;
+      if (typeof window !== 'undefined') {
+        delete window.MAPBOX_DISABLE_TELEMETRY;
+      }
     };
   }, []);
 
