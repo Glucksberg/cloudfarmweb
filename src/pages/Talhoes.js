@@ -170,22 +170,24 @@ const Talhoes = () => {
 
   // Inicializar Mapbox com ferramenta de desenho
   useEffect(() => {
-    if (map.current) return;
+    if (map.current || tokenValid === false) return;
 
     console.log('🗺️ Inicializando Mapbox com ferramenta de desenho...');
 
     if (!mapContainer.current) {
       console.error('❌ Container do mapa não encontrado!');
+      setMapError('Container do mapa não encontrado');
       return;
     }
 
     if (!mapboxgl.supported()) {
       console.error('❌ WebGL não suportado');
+      setMapError('WebGL não é suportado pelo navegador');
       return;
     }
 
-    // Configurar token
-    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
+    const config = getMapboxConfig();
+    mapboxgl.accessToken = config.accessToken;
 
     try {
       // Criar mapa
