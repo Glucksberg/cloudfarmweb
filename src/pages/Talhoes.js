@@ -369,6 +369,7 @@ const Talhoes = () => {
 
     } catch (error) {
       console.error('❌ Erro ao criar mapa:', error);
+      setMapError(`Falha na inicialização: ${error.message}`);
     }
 
     // Cleanup
@@ -378,7 +379,7 @@ const Talhoes = () => {
         map.current = null;
       }
     };
-  }, []);
+  }, [tokenValid]);
 
   // Inicializar talhões
   useEffect(() => {
