@@ -1,40 +1,31 @@
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Atualizacoes from './pages/Atualizacoes';
+import Logs from './pages/Logs';
+import Talhoes from './pages/Talhoes';
+import Estoque from './pages/Estoque';
+import Equipe from './pages/Equipe';
+import Configuracoes from './pages/Configuracoes';
 import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>🌾 CloudFarm Web</h1>
-          <p>Gestão inteligente para o campo</p>
-        </div>
-      </header>
-      <main className="main-content">
-        <div className="welcome-container">
-          <h2>Bem-vindo ao CloudFarm</h2>
-          <p>Sistema de gestão agrícola em desenvolvimento...</p>
-          <div className="feature-grid">
-            <div className="feature-card">
-              <h3>📊 Dashboard</h3>
-              <p>Visão geral da fazenda</p>
-            </div>
-            <div className="feature-card">
-              <h3>🗺️ Talhões</h3>
-              <p>Mapeamento interativo</p>
-            </div>
-            <div className="feature-card">
-              <h3>📦 Estoque</h3>
-              <p>Controle de insumos</p>
-            </div>
-            <div className="feature-card">
-              <h3>👥 Equipe</h3>
-              <p>Gestão de funcionários</p>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="atualizacoes" element={<Atualizacoes />} />
+          <Route path="logs" element={<Logs />} />
+          <Route path="talhoes" element={<Talhoes />} />
+          <Route path="estoque" element={<Estoque />} />
+          <Route path="equipe" element={<Equipe />} />
+          <Route path="configuracoes" element={<Configuracoes />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
