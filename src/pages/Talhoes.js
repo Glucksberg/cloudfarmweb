@@ -455,6 +455,8 @@ const Talhoes = () => {
     return () => {
       window.fetch = originalFetch;
       window.XMLHttpRequest = originalXMLHttpRequest;
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleGlobalError);
       window.removeEventListener('unhandledrejection', handlePromiseRejection);
