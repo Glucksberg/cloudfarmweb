@@ -43,6 +43,109 @@ const Talhoes = () => {
     drenagem: false    // Drenagem
   });
 
+  // Função para alternar entre estilos de mapa
+  const toggleMapStyle = (layerType) => {
+    if (!map.current || !mapLoaded) return;
+
+    setLayers(prev => {
+      const newLayers = { ...prev, [layerType]: !prev[layerType] };
+
+      // Alternar estilo do mapa base
+      if (layerType === 'satellite') {
+        const newStyle = !prev.satellite
+          ? 'mapbox://styles/mapbox/satellite-v9'  // Satélite
+          : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
+
+        console.log('🗺️ Alternando estilo para:', newStyle);
+
+        // Salvar referência das camadas dos talhões antes de mudar estilo
+        const talhoesData = map.current.getSource('talhoes');
+
+        map.current.setStyle(newStyle);
+
+        // Recriar camadas dos talhões quando o estilo carregar
+        map.current.once('style.load', () => {
+          console.log('🎨 Novo estilo carregado, recriando camadas...');
+          if (newLayers.talhoes && talhoesData) {
+            setTimeout(() => {
+              try {
+                addTalhoesLayer();
+                // Reaplicar seleção se houver
+                if (selectedTalhao) {
+                  setTimeout(() => updateSelectedTalhao(selectedTalhao), 100);
+                }
+              } catch (error) {
+                console.error('Erro ao recriar camadas:', error);
+              }
+            }, 100);
+          }
+        });
+      }
+
+      // Controlar visibilidade das outras camadas
+      if (layerType === 'talhoes' && map.current.getLayer('talhoes-layer')) {
+        const visibility = !prev.talhoes ? 'visible' : 'none';
+        map.current.setLayoutProperty('talhoes-layer', 'visibility', visibility);
+        map.current.setLayoutProperty('talhoes-border', 'visibility', visibility);
+        console.log('👁️ Visibilidade dos talhões:', visibility);
+      }
+
+      return newLayers;
+    });
+  };
+
+  // Função para atualizar talhão selecionado (extraída para reutilização)
+  const updateSelectedTalhao = (talhaoId) => {
+    if (!map.current || !mapLoaded) return;
+
+    try {
+      // Remover destaque anterior
+      if (map.current.getLayer && map.current.getLayer('talhao-highlight')) {
+        map.current.removeLayer('talhao-highlight');
+      }
+      if (map.current.getSource && map.current.getSource('talhao-highlight')) {
+        map.current.removeSource('talhao-highlight');
+      }
+
+      // Adicionar destaque do talhão selecionado
+      const selectedTalhaoData = talhoes.find(t => t.id === talhaoId);
+      if (selectedTalhaoData) {
+        const highlightData = {
+          type: 'FeatureCollection',
+          features: [{
+            type: 'Feature',
+            geometry: {
+              type: 'Polygon',
+              coordinates: [getTalhaoCoordinates(talhaoId)]
+            }
+          }]
+        };
+
+        map.current.addSource('talhao-highlight', {
+          type: 'geojson',
+          data: highlightData
+        });
+
+        map.current.addLayer({
+          id: 'talhao-highlight',
+          type: 'line',
+          source: 'talhao-highlight',
+          paint: {
+            'line-color': '#FF0000',
+            'line-width': 4
+          }
+        });
+
+        // Centralizar mapa no talhão selecionado
+        const bounds = new mapboxgl.LngLatBounds();
+        getTalhaoCoordinates(talhaoId).forEach(coord => bounds.extend(coord));
+        map.current.fitBounds(bounds, { padding: 50 });
+      }
+    } catch (error) {
+      console.error('Erro ao destacar talhão:', error);
+    }
+  };
+
   // Configurar Mapbox Token (usar variável de ambiente)
   mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
 
