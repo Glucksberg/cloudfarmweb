@@ -381,6 +381,33 @@ const Talhoes = () => {
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleGlobalError);
 
+    // Additional window.onerror for comprehensive catching
+    const originalWindowOnError = window.onerror;
+    window.onerror = function(message, source, lineno, colno, error) {
+      if (typeof message === 'string') {
+        if (message.includes('AbortError') ||
+            message.includes('signal is aborted') ||
+            message.includes('abortTile') ||
+            message.includes('_abortTile') ||
+            message.includes('_removeTile')) {
+          console.log('⏹️ Window.onerror AbortError suppressed:', message);
+          return true; // Prevent default error handling
+        }
+      }
+
+      if (error && (error.name === 'AbortError' ||
+                   error.message?.includes('signal is aborted'))) {
+        console.log('⏹️ Window.onerror AbortError object suppressed');
+        return true;
+      }
+
+      // Call original handler if not suppressed
+      if (originalWindowOnError) {
+        return originalWindowOnError.call(this, message, source, lineno, colno, error);
+      }
+      return false;
+    };
+
     // Cleanup: restore originals when component unmounts
     return () => {
       window.fetch = originalFetch;
@@ -847,7 +874,7 @@ const Talhoes = () => {
         type: 'FeatureCollection',
         features: currentTalhoes.map((talhao) => {
           const hasCustomGeometry = talhao.geometry && talhao.geometry.type === 'Polygon';
-          console.log(`�� Talhão ${talhao.id}: ${hasCustomGeometry ? 'geometria personalizada' : 'geometria padrão'}`);
+          console.log(`📍 Talhão ${talhao.id}: ${hasCustomGeometry ? 'geometria personalizada' : 'geometria padrão'}`);
 
           return {
             type: 'Feature',
