@@ -125,10 +125,25 @@ const Talhoes = () => {
           getTalhaoCoordinates(talhaoId).forEach(coord => bounds.extend(coord));
         }
 
-        map.current.fitBounds(bounds, { padding: 50 });
+        // Defensive fitBounds call with error handling
+        try {
+          if (bounds.isEmpty && !bounds.isEmpty()) {
+            map.current.fitBounds(bounds, {
+              padding: 50,
+              duration: 1000, // Smooth animation
+              essential: false // Don't interrupt user interactions
+            });
+          }
+        } catch (boundsError) {
+          if (boundsError.name !== 'AbortError') {
+            console.warn('⚠️ Erro ao ajustar bounds do mapa:', boundsError.message);
+          }
+        }
       }
     } catch (error) {
-      console.error('Erro ao destacar talhão:', error);
+      if (error.name !== 'AbortError') {
+        console.error('❌ Erro ao destacar talhão:', error);
+      }
     }
   };
 
@@ -243,7 +258,7 @@ const Talhoes = () => {
             (url.includes('events.mapbox.com') ||
              url.includes('api.mapbox.com/events') ||
              url.includes('telemetry'))) {
-          console.log('�� Blocked XHR telemetry request:', url);
+          console.log('🚫 Blocked XHR telemetry request:', url);
           // Don't call the original open for blocked requests
           return;
         }
