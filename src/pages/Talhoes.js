@@ -198,24 +198,17 @@ const Talhoes = () => {
     mapboxgl.accessToken = config.accessToken;
 
     try {
-      // Criar mapa com configurações de abort
+      // Criar mapa
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: config.style,
         center: config.center,
         zoom: config.zoom,
         transformRequest: (url, resourceType) => {
-          // Add abort signal to prevent hanging requests
-          const request = {
+          return {
             url: url,
             credentials: 'omit'
           };
-
-          if (abortController.current && !abortController.current.signal.aborted) {
-            request.signal = abortController.current.signal;
-          }
-
-          return request;
         },
         // Prevent excessive tile loading
         maxTileCacheSize: 50,
