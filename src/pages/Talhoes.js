@@ -277,13 +277,14 @@ const Talhoes = () => {
       window.MAPBOX_DISABLE_TELEMETRY = true;
     }
 
-    // Global error handler to catch any remaining telemetry errors
+    // Global error handler to catch telemetry and tile abort errors
     const handleGlobalError = (event) => {
       const error = event.error || event.reason;
       if (error && typeof error.message === 'string') {
         const message = error.message;
         const stack = error.stack || '';
 
+        // Suppress telemetry errors
         if (message.includes('Failed to fetch') && (
           stack.includes('events.mapbox.com') ||
           stack.includes('api.mapbox.com/events') ||
@@ -292,6 +293,19 @@ const Talhoes = () => {
           stack.includes('analytics')
         )) {
           console.log('🚫 Global telemetry error suppressed:', message);
+          event.preventDefault();
+          event.stopPropagation();
+          return false;
+        }
+
+        // Suppress tile abort errors
+        if (error.name === 'AbortError' ||
+            message.includes('signal is aborted') ||
+            stack.includes('abortTile') ||
+            stack.includes('_abortTile') ||
+            stack.includes('_removeTile') ||
+            stack.includes('Me.abortTile')) {
+          console.log('⏹️ Global tile abort error suppressed');
           event.preventDefault();
           event.stopPropagation();
           return false;
