@@ -134,9 +134,7 @@ const Talhoes = () => {
   useEffect(() => {
     if (map.current) return; // Mapa já inicializado
 
-    console.log('🗺️ Inicializando Mapbox Talhões com sistema anti-telemetria...');
-
-    const abortController = new AbortController();
+    console.log('🗺️ Inicializando Mapbox Talhões (sem AbortController)...');
 
     // Verificações básicas
     if (!mapContainer.current) {
@@ -185,10 +183,8 @@ const Talhoes = () => {
       mapInstance.addControl(new mapboxgl.NavigationControl());
       console.log('🎮 Controles de navegação adicionados');
 
-      // Usar handlers seguros de eventos
-      const handlers = createSafeEventHandlers(abortController);
-
-      mapInstance.on('load', handlers.onLoad(() => {
+      mapInstance.on('load', () => {
+        if (!componentMounted.current) return;
         console.log('🎉 Mapa carregado com sucesso!');
         try {
           // Adicionar polígonos dos talhões
@@ -200,7 +196,7 @@ const Talhoes = () => {
 
           // Adicionar listener para clique no mapa
           mapInstance.on('click', 'talhoes-layer', (e) => {
-            if (!handlers.isMounted()) return;
+            if (!componentMounted.current) return;
             try {
               if (e.features.length > 0) {
                 const talhaoId = e.features[0].properties.id;
@@ -214,7 +210,7 @@ const Talhoes = () => {
 
           // Mudar cursor ao passar sobre os talhões
           mapInstance.on('mouseenter', 'talhoes-layer', () => {
-            if (!handlers.isMounted()) return;
+            if (!componentMounted.current) return;
             try {
               if (mapInstance && mapInstance.getCanvas) {
                 mapInstance.getCanvas().style.cursor = 'pointer';
@@ -225,7 +221,7 @@ const Talhoes = () => {
           });
 
           mapInstance.on('mouseleave', 'talhoes-layer', () => {
-            if (!handlers.isMounted()) return;
+            if (!componentMounted.current) return;
             try {
               if (mapInstance && mapInstance.getCanvas) {
                 mapInstance.getCanvas().style.cursor = '';
@@ -237,11 +233,15 @@ const Talhoes = () => {
         } catch (error) {
           console.error('❌ Erro ao configurar mapa:', error);
         }
-      }));
+      });
 
-      mapInstance.on('error', handlers.onError((e) => {
-        console.error('❌ Erro do Mapbox:', e.error);
-      }));
+      mapInstance.on('error', (e) => {
+        if (!componentMounted.current) return;
+        const errorMsg = e.error?.message || 'Unknown error';
+        if (!errorMsg.includes('AbortError') && !errorMsg.includes('Failed to fetch')) {
+          console.error('❌ Erro do Mapbox:', e.error);
+        }
+      });
 
     } catch (error) {
       console.error('❌ Erro ao criar mapa:', error);
@@ -257,7 +257,29 @@ const Talhoes = () => {
       return;
     }
 
-    return createSafeMapCleanup(map, abortController);
+    // Cleanup simples sem AbortController
+    return () => {
+      componentMounted.current = false;
+      if (map.current) {
+        try {
+          const mapToRemove = map.current;
+          map.current = null;
+
+          setTimeout(() => {
+            try {
+              if (mapToRemove && !mapToRemove._removed) {
+                mapToRemove.remove();
+                console.log('✅ Mapa removido com sucesso');
+              }
+            } catch (err) {
+              // Ignorar erros de cleanup
+            }
+          }, 100);
+        } catch (err) {
+          // Ignorar erros de cleanup
+        }
+      }
+    };
   }, []);
 
   // Função para adicionar camada dos talhões
@@ -487,7 +509,7 @@ const Talhoes = () => {
           {/* Mapa Mapbox */}
           {!mapLoaded && (
             <div className="map-loading">
-              <h3>🗺️ Carregando Mapa...</h3>
+              <h3>����️ Carregando Mapa...</h3>
               <p>Inicializando Mapbox GL JS</p>
             </div>
           )}
