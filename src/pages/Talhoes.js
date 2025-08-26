@@ -351,7 +351,20 @@ const Talhoes = () => {
 
       // Tratamento de erros
       mapInstance.on('error', (e) => {
-        console.error('❌ Erro do Mapbox:', e.error);
+        const handledError = handleMapboxError(e.error, mapInstance);
+        setMapError(`Erro do mapa: ${handledError.message}`);
+      });
+
+      // Handle style load errors
+      mapInstance.on('style.load', () => {
+        console.log('✅ Map style loaded successfully');
+        setMapError(null);
+      });
+
+      // Handle source errors
+      mapInstance.on('sourcedataerror', (e) => {
+        console.warn('⚠️ Source data error:', e);
+        // Don't set error for source data issues as they're often recoverable
       });
 
     } catch (error) {
