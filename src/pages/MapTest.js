@@ -4,11 +4,18 @@ import mapboxgl from 'mapbox-gl';
 const MapTest = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
+  const [mapStatus, setMapStatus] = useState('Inicializando...');
+  const [error, setError] = useState(null);
+  const abortController = useRef(null);
 
   useEffect(() => {
+    // Prevent double initialization
     if (map.current) return;
 
     console.log('=== TESTE MAPBOX ===');
+
+    // Create abort controller for cleanup
+    abortController.current = new AbortController();
 
     // Token direto para teste
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
@@ -17,70 +24,129 @@ const MapTest = () => {
     console.log('Container:', mapContainer.current);
     console.log('mapboxgl supported:', mapboxgl.supported());
 
+    // Check WebGL support
     if (!mapboxgl.supported()) {
-      console.error('❌ Mapbox GL não é suportado neste navegador');
-      if (mapContainer.current) {
-        mapContainer.current.innerHTML = '<div style="padding: 2rem; text-align: center; color: red;"><h3>Navegador não suportado</h3><p>Este navegador não suporta Mapbox GL JS</p></div>';
-      }
+      const errorMsg = 'Mapbox GL não é suportado neste navegador';
+      console.error('❌', errorMsg);
+      setError(errorMsg);
+      setMapStatus('Erro: Navegador não suportado');
       return;
     }
 
+    // Check container
     if (!mapContainer.current) {
-      console.error('❌ Container do mapa não encontrado');
+      const errorMsg = 'Container do mapa não encontrado';
+      console.error('❌', errorMsg);
+      setError(errorMsg);
+      setMapStatus('Erro: Container não encontrado');
       return;
     }
+
+    let mapInstance = null;
 
     try {
       console.log('🔄 Criando instância do mapa...');
+      setMapStatus('Criando mapa...');
 
-      map.current = new mapboxgl.Map({
+      mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
         center: [-47.15, -15.48],
         zoom: 10,
-        attributionControl: false
+        attributionControl: false,
+        // Add network options to handle connectivity issues
+        maxParallelImageRequests: 16,
+        collectResourceTiming: false
       });
 
-      console.log('🗺️ Mapa criado:', map.current);
+      map.current = mapInstance;
+      console.log('🗺️ Mapa criado:', mapInstance);
+      setMapStatus('Mapa criado, aguardando carregamento...');
 
-      map.current.on('load', () => {
+      // Set up event listeners with error handling
+      mapInstance.on('load', () => {
+        if (abortController.current?.signal.aborted) return;
         console.log('✅ MAPA CARREGADO COM SUCESSO!');
         console.log('✅ Versão do Mapbox:', mapboxgl.version);
+        setMapStatus('✅ Mapa carregado com sucesso!');
+        setError(null);
       });
 
-      map.current.on('error', (e) => {
+      mapInstance.on('error', (e) => {
+        if (abortController.current?.signal.aborted) return;
         console.error('❌ ERRO DO MAPBOX:', e);
         console.error('❌ Detalhes do erro:', e.error);
+
+        const errorMessage = e.error?.message || 'Erro desconhecido do Mapbox';
+        setError(errorMessage);
+        setMapStatus(`Erro: ${errorMessage}`);
       });
 
-      map.current.on('style.load', () => {
+      mapInstance.on('style.load', () => {
+        if (abortController.current?.signal.aborted) return;
         console.log('🎨 Estilo carregado');
       });
 
-      map.current.on('render', () => {
+      mapInstance.on('render', () => {
+        if (abortController.current?.signal.aborted) return;
         console.log('🖼️ Primeira renderização');
       }, { once: true });
+
+      // Handle network errors
+      mapInstance.on('dataloading', (e) => {
+        if (abortController.current?.signal.aborted) return;
+        if (e.sourceDataType === 'metadata') {
+          setMapStatus('Carregando dados do mapa...');
+        }
+      });
+
+      mapInstance.on('data', (e) => {
+        if (abortController.current?.signal.aborted) return;
+        if (e.sourceDataType === 'metadata' && e.isSourceLoaded) {
+          setMapStatus('Dados carregados, renderizando...');
+        }
+      });
 
     } catch (error) {
       console.error('❌ ERRO AO CRIAR MAPA:', error);
       console.error('❌ Stack:', error.stack);
 
-      if (mapContainer.current) {
-        mapContainer.current.innerHTML = `
-          <div style="padding: 2rem; text-align: center; color: red;">
-            <h3>❌ Erro ao criar mapa</h3>
-            <p><strong>Erro:</strong> ${error.message}</p>
-            <p><strong>Token válido:</strong> ${mapboxgl.accessToken ? 'Sim' : 'Não'}</p>
-            <p><strong>Suporte WebGL:</strong> ${mapboxgl.supported() ? 'Sim' : 'Não'}</p>
-          </div>
-        `;
-      }
+      const errorMessage = error.message || 'Erro desconhecido ao criar mapa';
+      setError(errorMessage);
+      setMapStatus(`Erro: ${errorMessage}`);
     }
 
+    // Cleanup function
     return () => {
+      console.log('🧹 Iniciando limpeza do mapa...');
+
+      // Signal abort to prevent further operations
+      if (abortController.current) {
+        abortController.current.abort();
+      }
+
+      // Safe map removal with timeout
       if (map.current) {
-        console.log('🧹 Removendo mapa...');
-        map.current.remove();
+        try {
+          // Remove all event listeners first
+          map.current.off();
+
+          // Use setTimeout to avoid blocking the cleanup
+          setTimeout(() => {
+            try {
+              if (map.current && !map.current._removed) {
+                console.log('🗑️ Removendo instância do mapa...');
+                map.current.remove();
+              }
+            } catch (removeError) {
+              console.warn('⚠️ Erro ao remover mapa (ignorado):', removeError.message);
+            }
+          }, 0);
+
+          map.current = null;
+        } catch (cleanupError) {
+          console.warn('⚠️ Erro durante limpeza (ignorado):', cleanupError.message);
+        }
       }
     };
   }, []);
