@@ -50,79 +50,79 @@ const Talhoes = () => {
       return;
     }
 
-    setLayers(prev => {
-      const newLayers = { ...prev, [layerType]: !prev[layerType] };
+    // Alternar estilo do mapa base
+    if (layerType === 'satellite') {
+      const currentSatellite = layers.satellite;
+      const newStyle = !currentSatellite
+        ? 'mapbox://styles/mapbox/satellite-streets-v12'  // Satélite com labels
+        : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
 
-      // Alternar estilo do mapa base
-      if (layerType === 'satellite') {
-        const newStyle = !prev.satellite
-          ? 'mapbox://styles/mapbox/satellite-streets-v12'  // Satélite com labels
-          : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
+      console.log('🗺️ Alternando estilo:', currentSatellite ? 'Satélite → Normal' : 'Normal → Satélite');
+      console.log('🔗 URL do estilo:', newStyle);
 
-        console.log('🗺️ Alternando estilo:', prev.satellite ? 'Satélite → Normal' : 'Normal → Satélite');
-        console.log('🔗 URL do estilo:', newStyle);
+      try {
+        // Salvar referência das camadas dos talhões antes de mudar estilo
+        const talhoesData = map.current.getSource('talhoes');
+        const hasControls = map.current.hasControl && map.current.hasControl(new mapboxgl.NavigationControl());
 
-        try {
-          // Salvar referência das camadas dos talhões antes de mudar estilo
-          const talhoesData = map.current.getSource('talhoes');
-          const hasControls = map.current.hasControl && map.current.hasControl(new mapboxgl.NavigationControl());
+        map.current.setStyle(newStyle);
 
-          map.current.setStyle(newStyle);
+        // Atualizar estado primeiro
+        setLayers(prev => ({ ...prev, satellite: !prev.satellite }));
 
-          // Recriar camadas dos talhões quando o estilo carregar
-          map.current.once('style.load', () => {
-            console.log('🎨 Novo estilo carregado com sucesso!');
+        // Recriar camadas dos talhões quando o estilo carregar
+        map.current.once('style.load', () => {
+          console.log('🎨 Novo estilo carregado com sucesso!');
 
-            // Recriar controles de navegação se existiam
-            if (!hasControls) {
+          // Recriar controles de navegação se existiam
+          if (!hasControls) {
+            try {
+              map.current.addControl(new mapboxgl.NavigationControl());
+            } catch (controlError) {
+              console.warn('Aviso: Não foi possível readicionar controles:', controlError);
+            }
+          }
+
+          // Recriar camadas dos talhões se estavam visíveis
+          if (layers.talhoes && talhoesData) {
+            setTimeout(() => {
               try {
-                map.current.addControl(new mapboxgl.NavigationControl());
-              } catch (controlError) {
-                console.warn('Aviso: Não foi possível readicionar controles:', controlError);
-              }
-            }
+                addTalhoesLayer();
+                console.log('✅ Camadas dos talhões recriadas');
 
-            // Recriar camadas dos talhões se estavam visíveis
-            if (newLayers.talhoes && talhoesData) {
-              setTimeout(() => {
-                try {
-                  addTalhoesLayer();
-                  console.log('✅ Camadas dos talhões recriadas');
-
-                  // Reaplicar seleção se houver
-                  if (selectedTalhao) {
-                    setTimeout(() => {
-                      updateSelectedTalhao(selectedTalhao);
-                      console.log('🎯 Seleção de talhão reaplicada');
-                    }, 200);
-                  }
-                } catch (layerError) {
-                  console.error('❌ Erro ao recriar camadas dos talhões:', layerError);
+                // Reaplicar seleção se houver
+                if (selectedTalhao) {
+                  setTimeout(() => {
+                    updateSelectedTalhao(selectedTalhao);
+                    console.log('🎯 Seleção de talhão reaplicada');
+                  }, 200);
                 }
-              }, 150);
-            }
-          });
+              } catch (layerError) {
+                console.error('❌ Erro ao recriar camadas dos talhões:', layerError);
+              }
+            }, 150);
+          }
+        });
 
-          // Tratamento de erro na mudança de estilo
-          map.current.once('error', (error) => {
-            console.error('❌ Erro ao carregar novo estilo:', error);
-          });
+        // Tratamento de erro na mudança de estilo
+        map.current.once('error', (error) => {
+          console.error('❌ Erro ao carregar novo estilo:', error);
+        });
 
-        } catch (styleError) {
-          console.error('❌ Erro ao alterar estilo do mapa:', styleError);
-        }
+      } catch (styleError) {
+        console.error('❌ Erro ao alterar estilo do mapa:', styleError);
       }
+    }
 
-      // Controlar visibilidade das outras camadas
-      if (layerType === 'talhoes' && map.current.getLayer('talhoes-layer')) {
-        const visibility = !prev.talhoes ? 'visible' : 'none';
-        map.current.setLayoutProperty('talhoes-layer', 'visibility', visibility);
-        map.current.setLayoutProperty('talhoes-border', 'visibility', visibility);
-        console.log('👁️ Visibilidade dos talhões:', visibility);
-      }
-
-      return newLayers;
-    });
+    // Controlar visibilidade das outras camadas
+    if (layerType === 'talhoes' && map.current.getLayer('talhoes-layer')) {
+      const newVisibility = !layers.talhoes;
+      const visibility = newVisibility ? 'visible' : 'none';
+      map.current.setLayoutProperty('talhoes-layer', 'visibility', visibility);
+      map.current.setLayoutProperty('talhoes-border', 'visibility', visibility);
+      console.log('👁️ Visibilidade dos talhões:', visibility);
+      setLayers(prev => ({ ...prev, talhoes: newVisibility }));
+    }
   };
 
   // Função para atualizar talhão selecionado (extraída para reutilização)
@@ -441,7 +441,7 @@ const Talhoes = () => {
     { id: 't3', nome: 'T3', area: 89, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
     { id: 't4', nome: 'T4', area: 156, cultura: 'Milho', variedade: 'SYN 505', status: 'plantado' },
     { id: 't5', nome: 'T5', area: 98, cultura: 'Soja', variedade: 'OLIMPO', status: 'livre' },
-    { id: 't6', nome: 'T6', area: 203, cultura: 'Algodão', variedade: 'FM 993', status: 'plantado' },
+    { id: 't6', nome: 'T6', area: 203, cultura: 'Algod��o', variedade: 'FM 993', status: 'plantado' },
     { id: 't7', nome: 'T7', area: 167, cultura: 'Milho', variedade: 'SYN 480', status: 'livre' },
     { id: 't8', nome: 'T8', area: 134, cultura: 'Soja', variedade: 'OLIMPO', status: 'plantado' },
     { id: 't9', nome: 'T9', area: 189, cultura: 'Sorgo', variedade: 'BRS 330', status: 'livre' },
@@ -574,57 +574,8 @@ const Talhoes = () => {
                 🌾 Talhões {layers.talhoes && '(Visível)'}
               </span>
             </label>
-            <label className="layer-item">
-              <input
-                type="checkbox"
-                checked={layers.curvas}
-                onChange={() => toggleMapStyle('curvas')}
-                disabled
-              />
-              <span className="layer-name">
-                📏 Curvas de Nível (Em breve)
-              </span>
-            </label>
-            <label className="layer-item">
-              <input
-                type="checkbox"
-                checked={layers.drenagem}
-                onChange={() => toggleMapStyle('drenagem')}
-                disabled
-              />
-              <span className="layer-name">
-                💧 Drenagem (Em breve)
-              </span>
-            </label>
           </div>
 
-          <div style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            backgroundColor: layers.satellite ? '#e8f5e8' : '#f0f7ff',
-            borderRadius: '6px',
-            fontSize: '0.85rem',
-            color: layers.satellite ? '#2e7d32' : '#1976d2',
-            border: `1px solid ${layers.satellite ? '#c8e6c9' : '#bbdefb'}`
-          }}>
-            {layers.satellite ? (
-              <>
-                🛰️ <strong>Vista Satelital com Labels Ativa!</strong>
-                <br />
-                ✅ Você está vendo imagens aéreas reais + nomes de cidades, estradas e pontos de referência.
-                <br />
-                <small>💡 Dica: Clique nos talhões (T1, T2...) para destacá-los no mapa.</small>
-              </>
-            ) : (
-              <>
-                💡 <strong>Como ver imagens de satélite com nomes de cidades:</strong>
-                <br />
-                ✅ Marque "Satélite + Labels" acima para ver fotos aéreas + labels!
-                <br />
-                🌾 Mantenha "Talhões" ativo para ver as divisões sobrepostas.
-              </>
-            )}
-          </div>
         </div>
       </div>
 
