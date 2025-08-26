@@ -107,8 +107,22 @@ const Talhoes = () => {
         center: [-47.15, -15.48],
         zoom: 12,
         attributionControl: false,
-        maxParallelImageRequests: 16,
-        collectResourceTiming: false
+        logoPosition: 'bottom-right',
+        collectResourceTiming: false,
+        trackResize: false,
+        maxParallelImageRequests: 4,
+        maxTileCacheSize: 50,
+        transformRequest: (url, resourceType) => {
+          // Block analytics requests
+          if (url.includes('/events/') ||
+              url.includes('telemetry') ||
+              url.includes('analytics') ||
+              url.includes('performance')) {
+            console.log('🚫 Talhões blocked request:', url);
+            return { url: '', headers: {} };
+          }
+          return { url };
+        }
       });
 
       map.current = mapInstance;
