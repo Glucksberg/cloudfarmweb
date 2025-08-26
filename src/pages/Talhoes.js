@@ -797,7 +797,7 @@ const Talhoes = () => {
             position: 'relative'
           }}
         >
-          {!mapLoaded && (
+          {!mapLoaded && !mapError && tokenValid !== false && (
             <div className="map-loading" style={{
               display: 'flex',
               flexDirection: 'column',
@@ -807,6 +807,52 @@ const Talhoes = () => {
             }}>
               <h3>🗺️ Carregando Mapa com Ferramenta de Desenho...</h3>
               <p>Inicializando Mapbox GL Draw</p>
+            </div>
+          )}
+
+          {tokenValid === false && (
+            <div className="map-error" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              backgroundColor: '#ffebee',
+              color: '#d32f2f'
+            }}>
+              <h3>❌ Erro de Autenticação</h3>
+              <p>Token do Mapbox inválido ou expirado</p>
+              <small>Verifique a configuração do token Mapbox</small>
+            </div>
+          )}
+
+          {mapError && tokenValid !== false && (
+            <div className="map-error" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              backgroundColor: '#fff3e0',
+              color: '#f57c00',
+              padding: '1rem'
+            }}>
+              <h3>⚠️ Erro no Mapa</h3>
+              <p>{mapError}</p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  marginTop: '1rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#f57c00',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔄 Recarregar Página
+              </button>
             </div>
           )}
 
@@ -863,7 +909,7 @@ const Talhoes = () => {
             </div>
           </div>
           <div className="info-card">
-            <span className="info-icon">🌾</span>
+            <span className="info-icon">����</span>
             <div className="info-content">
               <span className="info-title">Talhões Cadastrados</span>
               <span className="info-value">{currentTalhoes.length} unidades</span>
