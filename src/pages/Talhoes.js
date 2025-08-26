@@ -400,55 +400,8 @@ const Talhoes = () => {
 
   // Função para destacar talhão selecionado
   useEffect(() => {
-    // Só executar se o mapa estiver carregado e tiver um talhão selecionado
-    if (!map.current || !mapLoaded || !selectedTalhao) return;
-
-    try {
-      // Remover destaque anterior de forma segura
-      if (map.current.getLayer && map.current.getLayer('talhao-highlight')) {
-        map.current.removeLayer('talhao-highlight');
-      }
-      if (map.current.getSource && map.current.getSource('talhao-highlight')) {
-        map.current.removeSource('talhao-highlight');
-      }
-
-      // Adicionar destaque do talhão selecionado
-      const selectedTalhaoData = talhoes.find(t => t.id === selectedTalhao);
-      if (selectedTalhaoData) {
-        const highlightData = {
-          type: 'FeatureCollection',
-          features: [{
-            type: 'Feature',
-            geometry: {
-              type: 'Polygon',
-              coordinates: [getTalhaoCoordinates(selectedTalhao)]
-            }
-          }]
-        };
-
-        map.current.addSource('talhao-highlight', {
-          type: 'geojson',
-          data: highlightData
-        });
-
-        map.current.addLayer({
-          id: 'talhao-highlight',
-          type: 'line',
-          source: 'talhao-highlight',
-          paint: {
-            'line-color': '#FF0000',
-            'line-width': 4
-          }
-        });
-
-        // Centralizar mapa no talhão selecionado
-        const bounds = new mapboxgl.LngLatBounds();
-        getTalhaoCoordinates(selectedTalhao).forEach(coord => bounds.extend(coord));
-        map.current.fitBounds(bounds, { padding: 50 });
-      }
-    } catch (error) {
-      console.error('Erro ao destacar talhão:', error);
-    }
+    if (!selectedTalhao) return;
+    updateSelectedTalhao(selectedTalhao);
   }, [selectedTalhao, mapLoaded]);
 
   const talhoes = [
