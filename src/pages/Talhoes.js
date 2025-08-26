@@ -50,6 +50,8 @@ const Talhoes = () => {
   const [mapError, setMapError] = useState(null);
   const [tokenValid, setTokenValid] = useState(null);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [isUpdatingMap, setIsUpdatingMap] = useState(false);
+  const updateTimeout = useRef(null);
 
   // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
