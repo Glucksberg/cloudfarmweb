@@ -211,10 +211,37 @@ const Talhoes = () => {
       window.MAPBOX_DISABLE_TELEMETRY = true;
     }
 
+    // Global error handler to catch any remaining telemetry errors
+    const handleGlobalError = (event) => {
+      const error = event.error || event.reason;
+      if (error && typeof error.message === 'string') {
+        const message = error.message;
+        const stack = error.stack || '';
+
+        if (message.includes('Failed to fetch') && (
+          stack.includes('events.mapbox.com') ||
+          stack.includes('api.mapbox.com/events') ||
+          stack.includes('telemetry') ||
+          stack.includes('postEvent') ||
+          stack.includes('analytics')
+        )) {
+          console.log('🚫 Global telemetry error suppressed:', message);
+          event.preventDefault();
+          event.stopPropagation();
+          return false;
+        }
+      }
+    };
+
+    window.addEventListener('error', handleGlobalError);
+    window.addEventListener('unhandledrejection', handleGlobalError);
+
     // Cleanup: restore originals when component unmounts
     return () => {
       window.fetch = originalFetch;
       window.XMLHttpRequest = originalXMLHttpRequest;
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleGlobalError);
       if (typeof window !== 'undefined') {
         delete window.MAPBOX_DISABLE_TELEMETRY;
       }
