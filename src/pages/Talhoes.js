@@ -785,6 +785,14 @@ const Talhoes = () => {
       geometry: drawnGeometry // Armazenar geometria real
     };
 
+    console.log('💾 Salvando novo talhão:', {
+      id: newTalhao.id,
+      nome: newTalhao.nome,
+      hasGeometry: !!newTalhao.geometry,
+      geometryType: newTalhao.geometry?.type,
+      coordinatesCount: newTalhao.geometry?.coordinates?.[0]?.length
+    });
+
     setCurrentTalhoes(prev => [...prev, newTalhao]);
     
     // Limpar formulário
