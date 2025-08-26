@@ -425,6 +425,11 @@ PORT=8080
 DB_PATH=./cloudfarm.db
 CORS_ORIGIN=http://localhost:3000
 LOG_LEVEL=info
+
+# Autenticação JWT
+JWT_SECRET=sua_chave_secreta_muito_segura_aqui_com_pelo_menos_32_caracteres
+JWT_EXPIRES_IN=3600
+BCRYPT_ROUNDS=12
 ```
 
 ### Exemplo Básico (Node.js + Express)
