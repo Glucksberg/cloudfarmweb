@@ -152,6 +152,22 @@ const Talhoes = () => {
     return coordinates[talhaoId] || [];
   };
 
+  // Test Mapbox token on component mount
+  useEffect(() => {
+    const validateToken = async () => {
+      console.log('🔑 Testing Mapbox token...');
+      const result = await testMapboxToken();
+      setTokenValid(result.valid);
+
+      if (!result.valid) {
+        setMapError(`Token validation failed: ${result.error || result.status}`);
+        console.error('❌ Mapbox token is invalid or network error');
+      }
+    };
+
+    validateToken();
+  }, []);
+
   // Inicializar Mapbox com ferramenta de desenho
   useEffect(() => {
     if (map.current) return;
