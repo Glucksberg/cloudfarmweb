@@ -1353,3 +1353,18 @@ input:checked + .slider:before {
   color: #2E7D32;
   font-size: 18px;
 }
+
+.map-loading {
+  text-align: center;
+  color: #757575;
+}
+
+.map-loading h3 {
+  margin-bottom: 0.5rem;
+  color: #2E7D32;
+}
+
+.map-loading p {
+  font-size: 0.9rem;
+  margin: 0;
+}

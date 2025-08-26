@@ -9,7 +9,11 @@ const Talhoes = () => {
   const map = useRef(null);
 
   // Configurar Mapbox Token (usar variável de ambiente)
-  mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || 'pk.eyJ1IjoiY2xvdWRmYXJtIiwiYSI6ImNscmZmc2MxZDBqMXIya3BjejZ3ZHZucmQifQ.example';
+  mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN || 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
+
+  // Debug - verificar token
+  console.log('Mapbox Token:', mapboxgl.accessToken ? 'Token carregado' : 'Token não encontrado');
+  console.log('Token length:', mapboxgl.accessToken?.length);
 
   // Dados de exemplo dos talhões com coordenadas
   const getTalhaoCoordinates = (talhaoId) => {
@@ -42,25 +46,43 @@ const Talhoes = () => {
   useEffect(() => {
     if (map.current) return; // Mapa já inicializado
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/satellite-streets-v12',
-      center: [-47.15, -15.48],
-      zoom: 13
-    });
+    console.log('Inicializando Mapbox...');
+    console.log('Container ref:', mapContainer.current);
+
+    if (!mapContainer.current) {
+      console.error('Container do mapa não encontrado!');
+      return;
+    }
+
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/satellite-streets-v12',
+        center: [-47.15, -15.48],
+        zoom: 13
+      });
+
+      console.log('Mapa criado:', map.current);
+    } catch (error) {
+      console.error('Erro ao criar mapa:', error);
+      return;
+    }
 
     map.current.on('load', () => {
+      console.log('Mapa carregado com sucesso!');
       try {
         // Adicionar polígonos dos talhões
         addTalhoesLayer();
 
         // Marcar mapa como carregado
         setMapLoaded(true);
+        console.log('Layers adicionadas e mapa marcado como carregado');
 
         // Adicionar listener para clique no mapa
         map.current.on('click', 'talhoes-layer', (e) => {
           if (e.features.length > 0) {
             const talhaoId = e.features[0].properties.id;
+            console.log('Talhão clicado no mapa:', talhaoId);
             setSelectedTalhao(talhaoId);
           }
         });
@@ -82,6 +104,19 @@ const Talhoes = () => {
       }
     });
 
+    // Listeners para debug
+    map.current.on('error', (e) => {
+      console.error('Erro do Mapbox:', e.error);
+    });
+
+    map.current.on('styledata', () => {
+      console.log('Style data carregado');
+    });
+
+    map.current.on('sourcedata', () => {
+      console.log('Source data carregado');
+    });
+
     return () => {
       if (map.current) {
         try {
@@ -95,6 +130,8 @@ const Talhoes = () => {
 
   // Função para adicionar camada dos talhões
   const addTalhoesLayer = () => {
+    console.log('Adicionando layers dos talhões...');
+
     const geojsonData = {
       type: 'FeatureCollection',
       features: talhoes.map((talhao) => ({
@@ -112,6 +149,8 @@ const Talhoes = () => {
         }
       }))
     };
+
+    console.log('GeoJSON data:', geojsonData);
 
     map.current.addSource('talhoes', {
       type: 'geojson',
@@ -340,12 +379,27 @@ const Talhoes = () => {
 
       {/* Container do Mapa */}
       <div className="map-container-wrapper">
-        <div 
-          ref={mapContainer} 
+        <div
+          ref={mapContainer}
           className="mapbox-container"
-          style={{ width: '100%', height: '500px' }}
+          style={{
+            width: '100%',
+            height: '500px',
+            backgroundColor: '#f0f0f0',
+            border: '2px dashed #ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
         >
           {/* Mapa Mapbox */}
+          {!mapLoaded && (
+            <div className="map-loading">
+              <h3>🗺️ Carregando Mapa...</h3>
+              <p>Inicializando Mapbox GL JS</p>
+            </div>
+          )}
+
           {selectedTalhao && (
             <div className="map-overlay">
               <div className="selected-indicator">
