@@ -55,41 +55,58 @@ const Talhoes = () => {
 
         // Recriar camadas dos talhões quando o estilo carregar
         map.current.once('style.load', () => {
-          console.log('🎨 Novo estilo carregado com sucesso!');
+          try {
+            console.log('🎨 Novo estilo carregado com sucesso!');
 
-          // Recriar controles de navegação se existiam
-          if (!hasControls) {
-            try {
-              map.current.addControl(new mapboxgl.NavigationControl());
-            } catch (controlError) {
-              console.warn('Aviso: Não foi possível readicionar controles:', controlError);
-            }
-          }
-
-          // Recriar camadas dos talhões se estavam visíveis
-          if (layers.talhoes && talhoesData) {
-            setTimeout(() => {
+            // Recriar controles de navegação se existiam
+            if (!hasControls) {
               try {
-                addTalhoesLayer();
-                console.log('✅ Camadas dos talhões recriadas');
-
-                // Reaplicar seleção se houver
-                if (selectedTalhao) {
-                  setTimeout(() => {
-                    updateSelectedTalhao(selectedTalhao);
-                    console.log('🎯 Seleção de talhão reaplicada');
-                  }, 200);
-                }
-              } catch (layerError) {
-                console.error('❌ Erro ao recriar camadas dos talhões:', layerError);
+                map.current.addControl(new mapboxgl.NavigationControl());
+              } catch (controlError) {
+                console.warn('Aviso: Não foi possível readicionar controles:', controlError);
               }
-            }, 150);
+            }
+
+            // Recriar camadas dos talhões se estavam visíveis
+            if (layers.talhoes && talhoesData) {
+              setTimeout(() => {
+                try {
+                  if (map.current && !map.current._removed) {
+                    addTalhoesLayer();
+                    console.log('✅ Camadas dos talhões recriadas');
+
+                    // Reaplicar seleção se houver
+                    if (selectedTalhao) {
+                      setTimeout(() => {
+                        try {
+                          if (map.current && !map.current._removed) {
+                            updateSelectedTalhao(selectedTalhao);
+                            console.log('🎯 Seleção de talhão reaplicada');
+                          }
+                        } catch (selectionError) {
+                          console.warn('⚠️ Erro ao reaplicar seleção (ignorado):', selectionError.message);
+                        }
+                      }, 200);
+                    }
+                  }
+                } catch (layerError) {
+                  console.warn('⚠️ Erro ao recriar camadas dos talhões (ignorado):', layerError.message);
+                }
+              }, 150);
+            }
+          } catch (styleLoadError) {
+            console.warn('⚠️ Erro no evento style.load (ignorado):', styleLoadError.message);
           }
         });
 
         // Tratamento de erro na mudança de estilo
         map.current.once('error', (error) => {
-          console.error('❌ Erro ao carregar novo estilo:', error);
+          const errorMsg = error.error?.message || 'Unknown error';
+          if (errorMsg.includes('AbortError') || errorMsg.includes('signal is aborted')) {
+            console.warn('⚠️ AbortError durante mudança de estilo (ignorado):', errorMsg);
+          } else {
+            console.error('❌ Erro ao carregar novo estilo:', error);
+          }
         });
 
       } catch (styleError) {
@@ -557,7 +574,7 @@ const Talhoes = () => {
           {selectedTalhao && (
             <div className="map-overlay">
               <div className="selected-indicator">
-                🎯 Talh��o {selectedTalhao.toUpperCase()} selecionado
+                🎯 Talhão {selectedTalhao.toUpperCase()} selecionado
               </div>
             </div>
           )}
