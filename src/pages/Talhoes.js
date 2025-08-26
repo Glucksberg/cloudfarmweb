@@ -56,7 +56,7 @@ const Talhoes = () => {
       // Alternar estilo do mapa base
       if (layerType === 'satellite') {
         const newStyle = !prev.satellite
-          ? 'mapbox://styles/mapbox/satellite-v9'  // Satélite
+          ? 'mapbox://styles/mapbox/satellite-streets-v12'  // Satélite com labels
           : 'mapbox://styles/mapbox/streets-v11';   // Mapa normal
 
         console.log('🗺️ Alternando estilo:', prev.satellite ? 'Satélite → Normal' : 'Normal → Satélite');
@@ -561,7 +561,7 @@ const Talhoes = () => {
                 onChange={() => toggleMapStyle('satellite')}
               />
               <span className="layer-name">
-                🛰️ Imagem de Satélite {layers.satellite && '(Ativo)'}
+                🛰️ Satélite + Labels {layers.satellite && '(Ativo)'}
               </span>
             </label>
             <label className="layer-item">
@@ -609,15 +609,17 @@ const Talhoes = () => {
           }}>
             {layers.satellite ? (
               <>
-                🛰️ <strong>Vista Satelital Ativa!</strong> Você está vendo imagens aéreas reais da fazenda.
+                🛰️ <strong>Vista Satelital com Labels Ativa!</strong>
+                <br />
+                ✅ Você está vendo imagens aéreas reais + nomes de cidades, estradas e pontos de referência.
                 <br />
                 <small>💡 Dica: Clique nos talhões (T1, T2...) para destacá-los no mapa.</small>
               </>
             ) : (
               <>
-                💡 <strong>Como ver imagens de satélite:</strong>
+                💡 <strong>Como ver imagens de satélite com nomes de cidades:</strong>
                 <br />
-                ✅ Marque "Imagem de Satélite" acima para ver fotos aéreas reais!
+                ✅ Marque "Satélite + Labels" acima para ver fotos aéreas + labels!
                 <br />
                 🌾 Mantenha "Talhões" ativo para ver as divisões sobrepostas.
               </>
