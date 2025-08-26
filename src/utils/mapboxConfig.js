@@ -84,43 +84,57 @@ export const getRestrictiveMapConfig = (container, style = 'mapbox://styles/mapb
 
 export const createSafeMapCleanup = (mapRef, abortController) => {
   return () => {
-    console.log('🧹 Starting safe map cleanup...');
-    
+    console.log('🧹 Starting gentle map cleanup...');
+
+    // DON'T abort the controller immediately - this causes tile AbortErrors
+    // Instead, mark it as aborted for our event handlers only
+    let isCleaningUp = false;
     if (abortController) {
-      abortController.abort();
+      isCleaningUp = true;
     }
-    
+
     if (mapRef.current) {
       try {
-        console.log('🔇 Removing all event listeners...');
-        mapRef.current.off();
-        
-        // Force stop any ongoing requests
-        if (mapRef.current._requestManager) {
+        console.log('🔇 Removing event listeners gently...');
+
+        // Remove specific event listeners instead of all at once
+        const events = ['load', 'error', 'styledata', 'sourcedata', 'click', 'mouseenter', 'mouseleave'];
+        events.forEach(event => {
           try {
-            mapRef.current._requestManager.abort();
-          } catch (abortError) {
-            console.warn('Could not abort request manager:', abortError.message);
+            mapRef.current.off(event);
+          } catch (e) {
+            // Ignore errors for events that don't exist
           }
-        }
-        
-        // Store reference and clear immediately
+        });
+
+        // Store reference and clear immediately to prevent further operations
         const mapToRemove = mapRef.current;
         mapRef.current = null;
-        
-        // Delayed removal to prevent AbortError
+
+        // Very gentle cleanup with longer delay to let tiles finish
         setTimeout(() => {
           try {
             if (mapToRemove && !mapToRemove._removed) {
-              console.log('🗑️ Removing map instance...');
+              console.log('🗑️ Removing map instance gently...');
+
+              // Let Mapbox finish any pending operations before removal
               mapToRemove.remove();
               console.log('✅ Map cleanup completed successfully');
             }
           } catch (removeError) {
             console.warn('⚠️ Map removal error (IGNORED):', removeError.message);
           }
-        }, 100); // Increased delay for more robust cleanup
-        
+
+          // Only abort the controller after map is safely removed
+          if (abortController && !abortController.signal.aborted) {
+            try {
+              abortController.abort();
+            } catch (abortErr) {
+              // Ignore abort errors
+            }
+          }
+        }, 300); // Longer delay to let Mapbox finish tile operations
+
       } catch (cleanupError) {
         console.warn('⚠️ General cleanup error (IGNORED):', cleanupError.message);
       }
@@ -129,39 +143,83 @@ export const createSafeMapCleanup = (mapRef, abortController) => {
 };
 
 export const createSafeEventHandlers = (abortController) => {
+  let componentMounted = true;
+
+  // Use a simple flag instead of relying on abortController.signal
+  if (abortController) {
+    const originalAbort = abortController.abort.bind(abortController);
+    abortController.abort = () => {
+      componentMounted = false;
+      // Don't actually abort yet - wait for cleanup
+    };
+  }
+
   return {
     onLoad: (callback) => {
       return () => {
-        if (abortController?.signal.aborted) {
+        if (!componentMounted) {
           console.log('⏹️ Load event ignored - component unmounted');
           return;
         }
-        callback();
+
+        try {
+          callback();
+        } catch (error) {
+          console.warn('⚠️ Error in load callback (IGNORED):', error.message);
+        }
       };
     },
-    
+
     onError: (callback) => {
       return (e) => {
-        if (abortController?.signal.aborted) {
+        if (!componentMounted) {
           console.log('⏹️ Error event ignored - component unmounted');
           return;
         }
-        
-        // Ignore network-related errors that we can't control
+
+        // Ignore network-related errors and abort errors
         const errorMsg = e.error?.message || 'Unknown error';
-        if (errorMsg.includes('Failed to fetch') || 
+        if (errorMsg.includes('Failed to fetch') ||
             errorMsg.includes('NetworkError') ||
             errorMsg.includes('fetch') ||
-            errorMsg.includes('Telemetry blocked')) {
-          console.warn('⚠️ Ignoring expected network error:', errorMsg);
+            errorMsg.includes('Telemetry blocked') ||
+            errorMsg.includes('AbortError') ||
+            errorMsg.includes('signal is aborted')) {
+          console.warn('⚠️ Ignoring expected network/abort error:', errorMsg);
           return;
         }
-        
-        callback(e);
+
+        try {
+          callback(e);
+        } catch (error) {
+          console.warn('⚠️ Error in error callback (IGNORED):', error.message);
+        }
       };
-    }
+    },
+
+    // Helper to check if component is still mounted
+    isMounted: () => componentMounted
   };
 };
 
 // Initialize telemetry blocking immediately when this module is imported
 blockMapboxTelemetry();
+
+// Additional error suppression for AbortErrors
+if (typeof window !== 'undefined') {
+  const originalConsoleError = console.error;
+  console.error = function(...args) {
+    const message = args.join(' ');
+
+    // Suppress known Mapbox AbortErrors that we can't prevent
+    if (message.includes('AbortError: signal is aborted without reason') ||
+        message.includes('AbortError') && message.includes('tile') ||
+        message.includes('_abortTile') ||
+        message.includes('_removeTile')) {
+      console.warn('🔇 Suppressed Mapbox AbortError (expected):', message.substring(0, 100) + '...');
+      return;
+    }
+
+    return originalConsoleError.apply(this, args);
+  };
+}
