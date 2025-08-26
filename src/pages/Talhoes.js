@@ -2,32 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './Pages.css';
+import {
+  blockMapboxTelemetry,
+  getRestrictiveMapConfig,
+  createSafeMapCleanup,
+  createSafeEventHandlers
+} from '../utils/mapboxConfig';
 
-// Disable Mapbox telemetry and analytics completely
-if (typeof window !== 'undefined') {
-  // Block Mapbox telemetry
-  window.mapboxgl = window.mapboxgl || {};
-
-  // Override internal functions that send telemetry
-  const originalFetch = window.fetch;
-  window.fetch = function(...args) {
-    const url = args[0];
-
-    // Block Mapbox analytics/telemetry requests
-    if (typeof url === 'string' && (
-      url.includes('events.mapbox.com') ||
-      url.includes('/events/') ||
-      url.includes('/turnstile') ||
-      url.includes('/performance') ||
-      url.includes('telemetry')
-    )) {
-      console.log('🚫 Blocking Mapbox telemetry request:', url);
-      return Promise.reject(new Error('Telemetry blocked'));
-    }
-
-    return originalFetch.apply(this, args);
-  };
-}
+// Ensure telemetry is blocked
+blockMapboxTelemetry();
 
 const Talhoes = () => {
   const [selectedTalhao, setSelectedTalhao] = useState(null);
@@ -215,161 +198,118 @@ const Talhoes = () => {
   useEffect(() => {
     if (map.current) return; // Mapa já inicializado
 
-    console.log('Inicializando Mapbox...');
-    console.log('Token:', mapboxgl.accessToken);
-    console.log('Container ref:', mapContainer.current);
+    console.log('🗺️ Inicializando Mapbox Talhões com sistema anti-telemetria...');
 
-    // Create abort controller for cleanup
     const abortController = new AbortController();
 
+    // Verificações básicas
     if (!mapContainer.current) {
-      console.error('Container do mapa não encontrado!');
+      console.error('❌ Container do mapa não encontrado!');
       return;
     }
 
     if (!mapboxgl.supported()) {
-      console.error('WebGL não suportado');
+      console.error('❌ WebGL não suportado');
       if (mapContainer.current) {
         mapContainer.current.innerHTML = `
           <div style="padding: 2rem; text-align: center; color: red;">
-            <h3>Navegador não suportado</h3>
+            <h3>🚫 Navegador não suportado</h3>
             <p>Este navegador não suporta Mapbox GL JS</p>
+            <p>Tente usar Chrome, Firefox ou Safari</p>
           </div>
         `;
       }
       return;
     }
 
-    let mapInstance = null;
+    // Configurar token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
+
+    if (!mapboxgl.accessToken) {
+      console.error('❌ Token do Mapbox não encontrado!');
+      return;
+    }
+
+    console.log('✅ Token Mapbox:', mapboxgl.accessToken.substring(0, 20) + '...');
 
     try {
-      mapInstance = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-47.15, -15.48],
-        zoom: 12,
-        attributionControl: false,
-        logoPosition: 'bottom-right',
-        collectResourceTiming: false,
-        trackResize: false,
-        maxParallelImageRequests: 4,
-        maxTileCacheSize: 50,
-        transformRequest: (url, resourceType) => {
-          // Block analytics requests
-          if (url.includes('/events/') ||
-              url.includes('telemetry') ||
-              url.includes('analytics') ||
-              url.includes('performance')) {
-            console.log('🚫 Talhões blocked request:', url);
-            return { url: '', headers: {} };
-          }
-          return { url };
-        }
-      });
+      // Usar configuração restritiva do mapboxConfig
+      const mapConfig = getRestrictiveMapConfig(
+        mapContainer.current,
+        'mapbox://styles/mapbox/streets-v11',
+        [-47.15, -15.48],
+        12
+      );
 
+      console.log('🔧 Criando mapa com configuração anti-telemetria...');
+      const mapInstance = new mapboxgl.Map(mapConfig);
       map.current = mapInstance;
-      console.log('Mapa criado:', mapInstance);
 
       // Adicionar controles de navegação
       mapInstance.addControl(new mapboxgl.NavigationControl());
+      console.log('🎮 Controles de navegação adicionados');
+
+      // Usar handlers seguros de eventos
+      const handlers = createSafeEventHandlers(abortController);
+
+      mapInstance.on('load', handlers.onLoad(() => {
+        console.log('🎉 Mapa carregado com sucesso!');
+        try {
+          // Adicionar polígonos dos talhões
+          addTalhoesLayer();
+
+          // Marcar mapa como carregado
+          setMapLoaded(true);
+          console.log('✅ Layers adicionadas e mapa marcado como carregado');
+
+          // Adicionar listener para clique no mapa
+          mapInstance.on('click', 'talhoes-layer', (e) => {
+            if (abortController.signal.aborted) return;
+            if (e.features.length > 0) {
+              const talhaoId = e.features[0].properties.id;
+              console.log('🎯 Talhão clicado no mapa:', talhaoId);
+              setSelectedTalhao(talhaoId);
+            }
+          });
+
+          // Mudar cursor ao passar sobre os talhões
+          mapInstance.on('mouseenter', 'talhoes-layer', () => {
+            if (abortController.signal.aborted) return;
+            if (mapInstance && mapInstance.getCanvas) {
+              mapInstance.getCanvas().style.cursor = 'pointer';
+            }
+          });
+
+          mapInstance.on('mouseleave', 'talhoes-layer', () => {
+            if (abortController.signal.aborted) return;
+            if (mapInstance && mapInstance.getCanvas) {
+              mapInstance.getCanvas().style.cursor = '';
+            }
+          });
+        } catch (error) {
+          console.error('❌ Erro ao configurar mapa:', error);
+        }
+      }));
+
+      mapInstance.on('error', handlers.onError((e) => {
+        console.error('❌ Erro do Mapbox:', e.error);
+      }));
 
     } catch (error) {
-      console.error('Erro ao criar mapa:', error);
+      console.error('❌ Erro ao criar mapa:', error);
       if (mapContainer.current) {
         mapContainer.current.innerHTML = `
           <div style="padding: 2rem; text-align: center; color: red;">
-            <h3>Erro ao carregar o mapa</h3>
-            <p>${error.message}</p>
-            <p>Verifique o token do Mapbox</p>
+            <h3>❌ Erro ao carregar o mapa</h3>
+            <p><strong>Detalhes:</strong> ${error.message}</p>
+            <p><small>Verifique a conexão de internet e o token do Mapbox</small></p>
           </div>
         `;
       }
       return;
     }
 
-    mapInstance.on('load', () => {
-      if (abortController.signal.aborted) return;
-      console.log('Mapa carregado com sucesso!');
-      try {
-        // Adicionar polígonos dos talhões
-        addTalhoesLayer();
-
-        // Marcar mapa como carregado
-        setMapLoaded(true);
-        console.log('Layers adicionadas e mapa marcado como carregado');
-
-        // Adicionar listener para clique no mapa
-        mapInstance.on('click', 'talhoes-layer', (e) => {
-          if (abortController.signal.aborted) return;
-          if (e.features.length > 0) {
-            const talhaoId = e.features[0].properties.id;
-            console.log('Talhão clicado no mapa:', talhaoId);
-            setSelectedTalhao(talhaoId);
-          }
-        });
-
-        // Mudar cursor ao passar sobre os talhões
-        mapInstance.on('mouseenter', 'talhoes-layer', () => {
-          if (abortController.signal.aborted) return;
-          if (mapInstance && mapInstance.getCanvas) {
-            mapInstance.getCanvas().style.cursor = 'pointer';
-          }
-        });
-
-        mapInstance.on('mouseleave', 'talhoes-layer', () => {
-          if (abortController.signal.aborted) return;
-          if (mapInstance && mapInstance.getCanvas) {
-            mapInstance.getCanvas().style.cursor = '';
-          }
-        });
-      } catch (error) {
-        console.error('Erro ao configurar mapa:', error);
-      }
-    });
-
-    // Listeners para debug
-    mapInstance.on('error', (e) => {
-      if (abortController.signal.aborted) return;
-      console.error('Erro do Mapbox:', e.error);
-    });
-
-    mapInstance.on('styledata', () => {
-      if (abortController.signal.aborted) return;
-      console.log('Style data carregado');
-    });
-
-    mapInstance.on('sourcedata', () => {
-      if (abortController.signal.aborted) return;
-      console.log('Source data carregado');
-    });
-
-    return () => {
-      console.log('🧹 Limpeza do mapa Talhões...');
-      abortController.abort();
-
-      if (map.current) {
-        try {
-          // Remove all event listeners first
-          map.current.off();
-
-          // Use setTimeout to avoid blocking the cleanup
-          setTimeout(() => {
-            try {
-              if (map.current && !map.current._removed) {
-                console.log('🗑️ Removendo mapa Talhões...');
-                map.current.remove();
-              }
-            } catch (removeError) {
-              console.warn('⚠️ Erro ao remover mapa Talhões (ignorado):', removeError.message);
-            }
-          }, 0);
-
-          map.current = null;
-        } catch (cleanupError) {
-          console.warn('⚠️ Erro durante limpeza Talhões (ignorado):', cleanupError.message);
-        }
-      }
-    };
+    return createSafeMapCleanup(map, abortController);
   }, []);
 
   // Função para adicionar camada dos talhões
