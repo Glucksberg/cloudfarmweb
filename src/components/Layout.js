@@ -12,6 +12,7 @@ const Layout = () => {
     { path: '/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/logs', icon: '📝', label: 'Logs' },
     { path: '/talhoes', icon: '🗺️', label: 'Talhões' },
+    { path: '/maptest', icon: '🧪', label: 'Debug Mapa' },
     { path: '/estoque', icon: '📦', label: 'Estoque' },
     { path: '/equipe', icon: '👥', label: 'Equipe' },
     { path: '/configuracoes', icon: '⚙️', label: 'Configurações' }
@@ -63,7 +64,7 @@ const Layout = () => {
               🔔
             </button>
             <button className="user-btn" aria-label="Perfil do usuário">
-              👤
+              ����
             </button>
           </div>
         </div>
