@@ -264,26 +264,38 @@ const Talhoes = () => {
 
           // Adicionar listener para clique no mapa
           mapInstance.on('click', 'talhoes-layer', (e) => {
-            if (abortController.signal.aborted) return;
-            if (e.features.length > 0) {
-              const talhaoId = e.features[0].properties.id;
-              console.log('🎯 Talhão clicado no mapa:', talhaoId);
-              setSelectedTalhao(talhaoId);
+            if (!handlers.isMounted()) return;
+            try {
+              if (e.features.length > 0) {
+                const talhaoId = e.features[0].properties.id;
+                console.log('🎯 Talhão clicado no mapa:', talhaoId);
+                setSelectedTalhao(talhaoId);
+              }
+            } catch (error) {
+              console.warn('⚠️ Erro no clique do talhão (ignorado):', error.message);
             }
           });
 
           // Mudar cursor ao passar sobre os talhões
           mapInstance.on('mouseenter', 'talhoes-layer', () => {
-            if (abortController.signal.aborted) return;
-            if (mapInstance && mapInstance.getCanvas) {
-              mapInstance.getCanvas().style.cursor = 'pointer';
+            if (!handlers.isMounted()) return;
+            try {
+              if (mapInstance && mapInstance.getCanvas) {
+                mapInstance.getCanvas().style.cursor = 'pointer';
+              }
+            } catch (error) {
+              console.warn('⚠️ Erro no mouseenter (ignorado):', error.message);
             }
           });
 
           mapInstance.on('mouseleave', 'talhoes-layer', () => {
-            if (abortController.signal.aborted) return;
-            if (mapInstance && mapInstance.getCanvas) {
-              mapInstance.getCanvas().style.cursor = '';
+            if (!handlers.isMounted()) return;
+            try {
+              if (mapInstance && mapInstance.getCanvas) {
+                mapInstance.getCanvas().style.cursor = '';
+              }
+            } catch (error) {
+              console.warn('⚠️ Erro no mouseleave (ignorado):', error.message);
             }
           });
         } catch (error) {
@@ -545,7 +557,7 @@ const Talhoes = () => {
           {selectedTalhao && (
             <div className="map-overlay">
               <div className="selected-indicator">
-                🎯 Talhão {selectedTalhao.toUpperCase()} selecionado
+                🎯 Talh��o {selectedTalhao.toUpperCase()} selecionado
               </div>
             </div>
           )}
