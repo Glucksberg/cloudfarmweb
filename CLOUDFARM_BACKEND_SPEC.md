@@ -612,11 +612,36 @@ curl -X POST http://SEU_VPS_IP:8080/api/talhoes \
 
 ### Teste WebSocket
 ```javascript
-// Teste no browser console
-const ws = new WebSocket('ws://SEU_VPS_IP:8080/ws');
-ws.onopen = () => console.log('Conectado');
-ws.onmessage = (e) => console.log('Mensagem:', JSON.parse(e.data));
-ws.send(JSON.stringify({type: 'subscribe', topics: ['talhoes']}));
+// Teste no browser console (com autenticação)
+const token = "eyJhbGciOiJIUzI1NiIs..."; // Token obtido do login
+const ws = new WebSocket(`ws://SEU_VPS_IP:8080/ws?token=${token}`);
+
+ws.onopen = () => {
+  console.log('Conectado ao WebSocket');
+  // Inscrever em tópicos após conexão
+  ws.send(JSON.stringify({type: 'subscribe', topics: ['talhoes']}));
+};
+
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  console.log('Mensagem recebida:', data);
+
+  if (data.type === 'auth_success') {
+    console.log('Autenticado como:', data.user.email);
+  }
+};
+
+ws.onerror = (error) => {
+  console.error('Erro WebSocket:', error);
+};
+
+ws.onclose = (event) => {
+  if (event.code === 1008) {
+    console.error('Conexão recusada: Token inválido');
+  } else {
+    console.log('Conexão fechada:', event.code);
+  }
+};
 ```
 
 ## 🔒 Segurança (Futura)
