@@ -12,6 +12,8 @@ const Layout = () => {
     { path: '/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/logs', icon: '📝', label: 'Logs' },
     { path: '/talhoes', icon: '🗺️', label: 'Talhões' },
+    { path: '/maptest', icon: '🧪', label: 'Teste Mapa' },
+    { path: '/mapsimple', icon: '🔧', label: 'Mapa Simples' },
     { path: '/estoque', icon: '📦', label: 'Estoque' },
     { path: '/equipe', icon: '👥', label: 'Equipe' },
     { path: '/configuracoes', icon: '⚙️', label: 'Configurações' }
