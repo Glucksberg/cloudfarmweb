@@ -21,11 +21,10 @@ const MapTestSimple = () => {
     // Prevent double initialization
     if (map.current) return;
 
-    console.log('=== MAPA TESTE SIMPLES (ANTI-TELEMETRY) ===');
+    console.log('=== MAPA TESTE SIMPLES (ANTI-TELEMETRY v2) ===');
 
     // Create abort controller for cleanup
     const abortController = new AbortController();
-    const cleanupRef = { aborted: false };
 
     // Verificações básicas
     console.log('1. Mapbox GL importado:', !!mapboxgl);
@@ -49,146 +48,42 @@ const MapTestSimple = () => {
       return;
     }
 
-    let mapInstance = null;
-
     try {
-      setStatus('Criando mapa (modo restrito)...');
+      setStatus('Criando mapa (anti-telemetry v2)...');
 
-      // Ultra-restrictive map configuration
-      mapInstance = new mapboxgl.Map({
-        container: mapContainer.current,
-        // Use simpler style to reduce network requests
-        style: {
-          version: 8,
-          sources: {
-            'simple-tiles': {
-              type: 'raster',
-              tiles: ['https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=' + mapboxgl.accessToken],
-              tileSize: 256
-            }
-          },
-          layers: [{
-            id: 'simple-tiles',
-            type: 'raster',
-            source: 'simple-tiles'
-          }]
-        },
-        center: [-74.5, 40],
-        zoom: 9,
-        // Disable all tracking and telemetry
-        attributionControl: false,
-        logoPosition: 'bottom-right',
-        collectResourceTiming: false,
-        trackResize: false,
-        // Reduce network requests
-        maxParallelImageRequests: 4,
-        maxTileCacheSize: 50,
-        transformRequest: (url, resourceType) => {
-          // Block analytics requests
-          if (url.includes('/events/') ||
-              url.includes('telemetry') ||
-              url.includes('analytics') ||
-              url.includes('performance')) {
-            console.log('🚫 Blocked request:', url);
-            return { url: '', headers: {} };
-          }
-          return { url };
-        }
-      });
+      // Use centralized restrictive config
+      const mapConfig = getRestrictiveMapConfig(
+        mapContainer.current,
+        'mapbox://styles/mapbox/streets-v11',
+        [-74.5, 40],
+        9
+      );
 
+      const mapInstance = new mapboxgl.Map(mapConfig);
       map.current = mapInstance;
-      console.log('6. Mapa criado com configuração restrita');
+      console.log('6. Mapa criado com configuração centralizada');
 
-      // Add minimal event listeners with protection
-      const onLoad = () => {
-        if (cleanupRef.aborted || abortController.signal.aborted) return;
-        console.log('✅ MAPA CARREGOU (MODO RESTRITO)!');
-        setStatus('✅ Mapa carregado (modo restrito)!');
+      // Use safe event handlers
+      const handlers = createSafeEventHandlers(abortController);
+
+      mapInstance.on('load', handlers.onLoad(() => {
+        console.log('✅ MAPA CARREGOU (ANTI-TELEMETRY v2)!');
+        setStatus('✅ Mapa carregado (anti-telemetry v2)!');
         setError(null);
-      };
+      }));
 
-      const onError = (e) => {
-        if (cleanupRef.aborted || abortController.signal.aborted) return;
+      mapInstance.on('error', handlers.onError((e) => {
         console.error('❌ Erro do mapa:', e);
-
-        // Ignore network-related errors that we can't control
-        const errorMsg = e.error?.message || 'Erro desconhecido';
-        if (errorMsg.includes('Failed to fetch') ||
-            errorMsg.includes('NetworkError') ||
-            errorMsg.includes('fetch')) {
-          console.warn('⚠️ Ignorando erro de rede:', errorMsg);
-          return;
-        }
-
-        setError(`Erro do Mapbox: ${errorMsg}`);
-      };
-
-      mapInstance.on('load', onLoad);
-      mapInstance.on('error', onError);
-
-      // Disable any possible telemetry after creation
-      setTimeout(() => {
-        try {
-          if (mapInstance && mapInstance._requestManager) {
-            const originalTransformRequest = mapInstance._requestManager.transformRequest;
-            mapInstance._requestManager.transformRequest = (url, resourceType) => {
-              if (url.includes('/events/') || url.includes('telemetry')) {
-                console.log('🚫 Post-creation block:', url);
-                return { url: '', headers: {} };
-              }
-              return originalTransformRequest ? originalTransformRequest(url, resourceType) : { url };
-            };
-          }
-        } catch (disableError) {
-          console.warn('Could not disable post-creation telemetry:', disableError);
-        }
-      }, 100);
+        setError(`Erro do Mapbox: ${e.error?.message || 'Erro desconhecido'}`);
+      }));
 
     } catch (err) {
       console.error('❌ Erro ao criar:', err);
       setError(`Erro ao criar: ${err.message}`);
     }
 
-    return () => {
-      console.log('🧹 Iniciando limpeza robusta...');
-      cleanupRef.aborted = true;
-      abortController.abort();
-
-      if (map.current) {
-        try {
-          console.log('🔇 Removendo todos os listeners...');
-          map.current.off();
-
-          // Force stop any ongoing requests
-          if (map.current._requestManager) {
-            try {
-              map.current._requestManager.abort();
-            } catch (abortError) {
-              console.warn('Could not abort request manager:', abortError);
-            }
-          }
-
-          // Delayed removal to prevent AbortError
-          const mapToRemove = map.current;
-          map.current = null;
-
-          setTimeout(() => {
-            try {
-              if (mapToRemove && !mapToRemove._removed && !cleanupRef.aborted) {
-                console.log('🗑️ Removendo instância do mapa...');
-                mapToRemove.remove();
-                console.log('✅ Mapa removido com sucesso');
-              }
-            } catch (removeError) {
-              console.warn('⚠️ Erro ao remover mapa (IGNORADO):', removeError.message);
-            }
-          }, 50);
-
-        } catch (cleanupError) {
-          console.warn('⚠️ Erro durante limpeza (IGNORADO):', cleanupError.message);
-        }
-      }
-    };
+    // Use centralized cleanup
+    return createSafeMapCleanup(map, abortController);
   }, []);
 
   return (
