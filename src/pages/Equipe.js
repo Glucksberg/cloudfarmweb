@@ -5,22 +5,22 @@ const Equipe = () => {
   const [filterRole, setFilterRole] = useState('todos');
 
   const team = [
-    { id: 1, name: 'João Silva', role: 'operador', status: 'online', phone: '(61) 99999-1111', email: 'joao@fazenda.com', sector: 'Campo' },
+    { id: 1, name: 'Eduardo Silva', role: 'dono', status: 'online', phone: '(61) 99999-0000', email: 'eduardo@fazenda.com', sector: 'Administração Geral' },
     { id: 2, name: 'Maria Santos', role: 'gerente', status: 'online', phone: '(61) 99999-2222', email: 'maria@fazenda.com', sector: 'Administração' },
-    { id: 3, name: 'Pedro Costa', role: 'tecnico', status: 'offline', phone: '(61) 99999-3333', email: 'pedro@fazenda.com', sector: 'Manutenção' },
-    { id: 4, name: 'Ana Oliveira', role: 'operador', status: 'online', phone: '(61) 99999-4444', email: 'ana@fazenda.com', sector: 'Estoque' },
-    { id: 5, name: 'Carlos Lima', role: 'operador', status: 'online', phone: '(61) 99999-5555', email: 'carlos@fazenda.com', sector: 'Campo' },
-    { id: 6, name: 'Roberto Mendes', role: 'supervisor', status: 'offline', phone: '(61) 99999-6666', email: 'roberto@fazenda.com', sector: 'Produção' },
-    { id: 7, name: 'José Ferreira', role: 'operador', status: 'online', phone: '(61) 99999-7777', email: 'jose@fazenda.com', sector: 'Campo' },
-    { id: 8, name: 'Luiza Campos', role: 'tecnico', status: 'online', phone: '(61) 99999-8888', email: 'luiza@fazenda.com', sector: 'Laboratório' }
+    { id: 3, name: 'Roberto Mendes', role: 'gerente', status: 'offline', phone: '(61) 99999-6666', email: 'roberto@fazenda.com', sector: 'Produção' },
+    { id: 4, name: 'João Silva', role: 'funcionario', status: 'online', phone: '(61) 99999-1111', email: 'joao@fazenda.com', sector: 'Campo' },
+    { id: 5, name: 'Ana Oliveira', role: 'funcionario', status: 'online', phone: '(61) 99999-4444', email: 'ana@fazenda.com', sector: 'Estoque' },
+    { id: 6, name: 'Carlos Lima', role: 'funcionario', status: 'online', phone: '(61) 99999-5555', email: 'carlos@fazenda.com', sector: 'Campo' },
+    { id: 7, name: 'José Ferreira', role: 'funcionario', status: 'online', phone: '(61) 99999-7777', email: 'jose@fazenda.com', sector: 'Campo' },
+    { id: 8, name: 'Pedro Costa', role: 'funcionario', status: 'offline', phone: '(61) 99999-3333', email: 'pedro@fazenda.com', sector: 'Manutenção' },
+    { id: 9, name: 'Luiza Campos', role: 'funcionario', status: 'online', phone: '(61) 99999-8888', email: 'luiza@fazenda.com', sector: 'Laboratório' }
   ];
 
   const roles = [
     { id: 'todos', name: 'Todos', icon: '👥' },
+    { id: 'dono', name: 'Dono', icon: '👑' },
     { id: 'gerente', name: 'Gerentes', icon: '👔' },
-    { id: 'supervisor', name: 'Supervisores', icon: '👨‍💼' },
-    { id: 'tecnico', name: 'Técnicos', icon: '🔧' },
-    { id: 'operador', name: 'Operadores', icon: '👷' }
+    { id: 'funcionario', name: 'Funcionários', icon: '👷' }
   ];
 
   const filteredTeam = filterRole === 'todos' 
@@ -29,20 +29,18 @@ const Equipe = () => {
 
   const getRoleIcon = (role) => {
     const icons = {
+      dono: '👑',
       gerente: '👔',
-      supervisor: '👨‍💼',
-      tecnico: '🔧',
-      operador: '👷'
+      funcionario: '👷'
     };
     return icons[role] || '👤';
   };
 
   const getRoleName = (role) => {
     const names = {
+      dono: 'Dono',
       gerente: 'Gerente',
-      supervisor: 'Supervisor',
-      tecnico: 'Técnico',
-      operador: 'Operador'
+      funcionario: 'Funcionário'
     };
     return names[role] || role;
   };
