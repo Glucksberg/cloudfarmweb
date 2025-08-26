@@ -7,6 +7,7 @@ import Talhoes from './pages/Talhoes';
 import Estoque from './pages/Estoque';
 import Equipe from './pages/Equipe';
 import Configuracoes from './pages/Configuracoes';
+import MapTest from './pages/MapTest';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="logs" element={<Logs />} />
           <Route path="talhoes" element={<Talhoes />} />
+          <Route path="maptest" element={<MapTest />} />
           <Route path="estoque" element={<Estoque />} />
           <Route path="equipe" element={<Equipe />} />
           <Route path="configuracoes" element={<Configuracoes />} />

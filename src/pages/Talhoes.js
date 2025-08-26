@@ -47,6 +47,7 @@ const Talhoes = () => {
     if (map.current) return; // Mapa já inicializado
 
     console.log('Inicializando Mapbox...');
+    console.log('Token:', mapboxgl.accessToken);
     console.log('Container ref:', mapContainer.current);
 
     if (!mapContainer.current) {
@@ -55,16 +56,32 @@ const Talhoes = () => {
     }
 
     try {
+      // Teste com estilo mais simples primeiro
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/satellite-streets-v12',
+        style: 'mapbox://styles/mapbox/streets-v11', // Estilo mais leve
         center: [-47.15, -15.48],
-        zoom: 13
+        zoom: 12,
+        attributionControl: false
       });
 
       console.log('Mapa criado:', map.current);
+
+      // Adicionar controles de navegação
+      map.current.addControl(new mapboxgl.NavigationControl());
+
     } catch (error) {
       console.error('Erro ao criar mapa:', error);
+      // Mostrar erro na interface
+      if (mapContainer.current) {
+        mapContainer.current.innerHTML = `
+          <div style="padding: 2rem; text-align: center; color: red;">
+            <h3>Erro ao carregar o mapa</h3>
+            <p>${error.message}</p>
+            <p>Verifique o token do Mapbox</p>
+          </div>
+        `;
+      }
       return;
     }
 
