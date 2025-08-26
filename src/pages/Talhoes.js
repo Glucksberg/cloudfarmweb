@@ -15,10 +15,15 @@ const Talhoes = () => {
     console.log('🚫 Immediate telemetry blocking...');
     window.MAPBOX_DISABLE_TELEMETRY = true;
 
-    // Override console.error to suppress telemetry errors
+    // Enhanced console.error override to suppress telemetry and abort errors
     const originalConsoleError = console.error;
     console.error = function(...args) {
       const message = args.join(' ');
+      const fullMessage = args.map(arg =>
+        typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+      ).join(' ');
+
+      // Suppress telemetry errors
       if (message.includes('Failed to fetch') &&
           (message.includes('events.mapbox.com') ||
            message.includes('telemetry') ||
@@ -26,6 +31,21 @@ const Talhoes = () => {
         console.log('🚫 Suppressed telemetry console error');
         return;
       }
+
+      // Suppress AbortError patterns specifically
+      if (message.includes('AbortError') ||
+          message.includes('signal is aborted without reason') ||
+          fullMessage.includes('Object.cancel') ||
+          fullMessage.includes('Me.abortTile') ||
+          fullMessage.includes('ey._abortTile') ||
+          fullMessage.includes('ey._removeTile') ||
+          fullMessage.includes('ey.update') ||
+          fullMessage.includes('Kt._updateSources') ||
+          fullMessage.includes('Map._render')) {
+        console.log('⏹️ Suppressed AbortError console output');
+        return;
+      }
+
       return originalConsoleError.apply(this, args);
     };
 
@@ -394,7 +414,7 @@ const Talhoes = () => {
     // Only initialize when token is confirmed valid and not already initializing
     if (map.current || tokenValid !== true || isInitializing) return;
 
-    console.log('���️ Inicializando Mapbox com ferramenta de desenho...');
+    console.log('🗺️ Inicializando Mapbox com ferramenta de desenho...');
     setIsInitializing(true);
 
     if (!mapContainer.current) {
@@ -827,7 +847,7 @@ const Talhoes = () => {
         type: 'FeatureCollection',
         features: currentTalhoes.map((talhao) => {
           const hasCustomGeometry = talhao.geometry && talhao.geometry.type === 'Polygon';
-          console.log(`📍 Talhão ${talhao.id}: ${hasCustomGeometry ? 'geometria personalizada' : 'geometria padrão'}`);
+          console.log(`�� Talhão ${talhao.id}: ${hasCustomGeometry ? 'geometria personalizada' : 'geometria padrão'}`);
 
           return {
             type: 'Feature',
