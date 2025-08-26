@@ -483,26 +483,59 @@ const server = app.listen(PORT, () => {
   console.log(`CloudFarm API rodando na porta ${PORT}`);
 });
 
-// WebSocket Server
-const wss = new WebSocket.Server({ server, path: '/ws' });
+// WebSocket Server com Autenticação
+const wss = new WebSocket.Server({
+  server,
+  path: '/ws',
+  verifyClient: (info) => {
+    // Extrair token da URL
+    const url = new URL(info.req.url, 'http://localhost');
+    const token = url.searchParams.get('token');
 
-wss.on('connection', (ws) => {
-  console.log('Cliente WebSocket conectado');
-  
+    if (!token) {
+      console.log('WebSocket: Token ausente');
+      return false;
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      info.req.user = decoded;
+      return true;
+    } catch (error) {
+      console.log('WebSocket: Token inválido', error.message);
+      return false;
+    }
+  }
+});
+
+wss.on('connection', (ws, req) => {
+  const user = req.user;
+  console.log(`Cliente WebSocket conectado: ${user.email}`);
+
+  // Enviar confirmação de autenticação
+  ws.send(JSON.stringify({
+    type: 'auth_success',
+    user: {
+      id: user.sub,
+      email: user.email,
+      name: user.name
+    }
+  }));
+
   ws.on('message', (message) => {
     try {
       const data = JSON.parse(message);
       if (data.type === 'subscribe') {
         // Lógica de inscrição em tópicos
-        console.log('Cliente inscrito em:', data.topics);
+        console.log(`Cliente ${user.email} inscrito em:`, data.topics);
       }
     } catch (error) {
       console.error('Erro ao processar mensagem WebSocket:', error);
     }
   });
-  
+
   ws.on('close', () => {
-    console.log('Cliente WebSocket desconectado');
+    console.log(`Cliente WebSocket desconectado: ${user.email}`);
   });
 });
 
