@@ -433,17 +433,41 @@ LOG_LEVEL=info
 const express = require('express');
 const cors = require('cors');
 const WebSocket = require('ws');
+const jwt = require('jsonwebtoken');
 const talhoeRoutes = require('./routes/api');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_aqui';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api', talhoeRoutes);
+// Middleware de Autenticação JWT
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token de acesso requerido' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token inválido ou expirado' });
+    }
+    req.user = user;
+    next();
+  });
+};
+
+// Routes públicas
+app.use('/api/auth', authRoutes);
+
+// Routes protegidas
+app.use('/api', authenticateToken, talhoeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
