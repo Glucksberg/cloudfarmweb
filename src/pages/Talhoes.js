@@ -301,11 +301,6 @@ const Talhoes = () => {
 
       // Evento de carregamento
       mapInstance.on('load', () => {
-        if (abortController.current && abortController.current.signal.aborted) {
-          console.log('⚠️ Map load aborted');
-          return;
-        }
-
         console.log('🎉 Mapa carregado com sucesso!');
 
         // Adicionar polígonos dos talhões existentes
@@ -316,10 +311,6 @@ const Talhoes = () => {
 
         // Listeners para talhões existentes
         mapInstance.on('click', 'talhoes-layer', (e) => {
-          if (abortController.current && abortController.current.signal.aborted) {
-            return;
-          }
-
           if (e.features.length > 0) {
             const talhaoId = e.features[0].properties.id;
             console.log('🎯 Talhão clicado:', talhaoId);
@@ -338,10 +329,6 @@ const Talhoes = () => {
 
       // Event listeners para desenho
       mapInstance.on('draw.create', (e) => {
-        if (abortController.current && abortController.current.signal.aborted) {
-          return;
-        }
-
         console.log('🖊️ Talhão desenhado:', e);
         const feature = e.features[0];
         const validation = validateGeometry(feature.geometry);
@@ -363,10 +350,6 @@ const Talhoes = () => {
       });
 
       mapInstance.on('draw.update', (e) => {
-        if (abortController.current && abortController.current.signal.aborted) {
-          return;
-        }
-
         console.log('✏️ Talhão editado:', e);
         const feature = e.features[0];
         const validation = validateGeometry(feature.geometry);
@@ -380,10 +363,6 @@ const Talhoes = () => {
       });
 
       mapInstance.on('draw.delete', (e) => {
-        if (abortController.current && abortController.current.signal.aborted) {
-          return;
-        }
-
         console.log('🗑️ Talhão deletado:', e);
         setDrawnGeometry(null);
         setShowNewTalhaoForm(false);
@@ -404,9 +383,6 @@ const Talhoes = () => {
 
       // Handle style load
       mapInstance.on('style.load', () => {
-        if (abortController.current && abortController.current.signal.aborted) {
-          return;
-        }
         console.log('✅ Map style loaded successfully');
         setMapError(null);
       });
