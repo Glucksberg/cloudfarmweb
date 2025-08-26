@@ -25,6 +25,8 @@ const Talhoes = () => {
   const map = useRef(null);
   const draw = useRef(null);
   const [currentTalhoes, setCurrentTalhoes] = useState([]);
+  const [mapError, setMapError] = useState(null);
+  const [tokenValid, setTokenValid] = useState(null);
 
   // Função para destacar talhão selecionado
   const updateSelectedTalhao = (talhaoId) => {
@@ -646,7 +648,7 @@ const Talhoes = () => {
           zIndex: 1000,
           minWidth: '400px'
         }}>
-          <h3>🆕 Novo Talh��o Desenhado</h3>
+          <h3>🆕 Novo Talhão Desenhado</h3>
           <p>Área calculada: <strong>{calculateArea(drawnGeometry)} hectares</strong></p>
           
           <div style={{ marginBottom: '1rem' }}>
