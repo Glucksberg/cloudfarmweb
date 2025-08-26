@@ -440,30 +440,32 @@ const Talhoes = () => {
         </div>
 
         <div className="layer-panel">
-          <h3>🗂️ Camadas</h3>
-          <div className="layer-list">
-            <label className="layer-item">
-              <input
-                type="checkbox"
-                checked={layers.satellite}
-                onChange={() => toggleMapStyle('satellite')}
-              />
-              <span className="layer-name">
-                🛰️ Satélite + Labels {layers.satellite && '(Ativo)'}
-              </span>
-            </label>
-            <label className="layer-item">
-              <input
-                type="checkbox"
-                checked={layers.talhoes}
-                onChange={() => toggleMapStyle('talhoes')}
-              />
-              <span className="layer-name">
-                🌾 Talhões {layers.talhoes && '(Visível)'}
-              </span>
-            </label>
+          <h3>🛰️ Vista Satelital</h3>
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#e8f5e8',
+            borderRadius: '8px',
+            border: '2px solid #4caf50'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '0.5rem'
+            }}>
+              <span style={{ fontSize: '1.2rem' }}>✅</span>
+              <strong>Satélite + Labels Ativo</strong>
+            </div>
+            <p style={{
+              margin: 0,
+              fontSize: '0.9rem',
+              color: '#2e7d32'
+            }}>
+              🗺️ Você está vendo imagens aéreas reais + nomes de cidades e estradas
+              <br />
+              🌾 Talhões visíveis com cores de status (verde = plantado, laranja = livre)
+            </p>
           </div>
-
         </div>
       </div>
 
