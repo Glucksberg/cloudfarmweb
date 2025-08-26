@@ -878,7 +878,7 @@ const Talhoes = () => {
             position: 'relative'
           }}
         >
-          {!mapLoaded && !mapError && tokenValid !== false && (
+          {(!mapLoaded || isInitializing) && !mapError && tokenValid !== false && (
             <div className="map-loading" style={{
               display: 'flex',
               flexDirection: 'column',
@@ -886,8 +886,8 @@ const Talhoes = () => {
               justifyContent: 'center',
               height: '100%'
             }}>
-              <h3>🗺️ Carregando Mapa com Ferramenta de Desenho...</h3>
-              <p>Inicializando Mapbox GL Draw</p>
+              <h3>🗺️ {isInitializing ? 'Inicializando' : 'Carregando'} Mapa com Ferramenta de Desenho...</h3>
+              <p>{isInitializing ? 'Configurando Mapbox GL Draw' : 'Carregando recursos'}</p>
             </div>
           )}
 
