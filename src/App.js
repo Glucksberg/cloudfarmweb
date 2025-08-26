@@ -10,6 +10,7 @@ import Configuracoes from './pages/Configuracoes';
 import MapTest from './pages/MapTest';
 import MapTestSimple from './pages/MapTestSimple';
 import MapTestBasic from './pages/MapTestBasic';
+import MapTestFinal from './pages/MapTestFinal';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css';
 
