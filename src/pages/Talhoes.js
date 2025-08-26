@@ -500,49 +500,8 @@ const Talhoes = () => {
     }
 
     console.log('✅ Novo talhão salvo:', newTalhao);
-    
-    // Recarregar camada dos talhões
-    setTimeout(() => {
-      const source = map.current.getSource('talhoes');
-      if (source) {
-        // Create features for existing talhões
-        const existingFeatures = currentTalhoes.map(talhao => ({
-          type: 'Feature',
-          properties: {
-            id: talhao.id,
-            nome: talhao.nome,
-            area: talhao.area,
-            cultura: talhao.cultura,
-            status: talhao.status
-          },
-          geometry: talhao.geometry || {
-            type: 'Polygon',
-            coordinates: [getTalhaoCoordinates(talhao.id)]
-          }
-        }));
 
-        // Add the new talhão with its actual drawn geometry
-        const newTalhaoFeature = {
-          type: 'Feature',
-          properties: {
-            id: newTalhao.id,
-            nome: newTalhao.nome,
-            area: newTalhao.area,
-            cultura: newTalhao.cultura,
-            status: newTalhao.status
-          },
-          geometry: newTalhao.geometry // Use the actual drawn geometry
-        };
-
-        const updatedGeojson = {
-          type: 'FeatureCollection',
-          features: [...existingFeatures, newTalhaoFeature]
-        };
-
-        source.setData(updatedGeojson);
-        console.log('✅ Map source updated with new talhão geometry');
-      }
-    }, 100);
+    // Map will be updated automatically by useEffect when currentTalhoes changes
   };
 
   // Dados dos talhões iniciais
