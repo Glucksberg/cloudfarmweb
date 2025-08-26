@@ -9,13 +9,19 @@ const MapTestSimple = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Prevent double initialization
+    if (map.current) return;
+
     console.log('=== MAPA TESTE SIMPLES ===');
-    
+
+    // Create abort controller for cleanup
+    const abortController = new AbortController();
+
     // Verificações básicas
     console.log('1. Mapbox GL importado:', !!mapboxgl);
     console.log('2. Mapbox GL versão:', mapboxgl.version);
     console.log('3. WebGL suportado:', mapboxgl.supported());
-    
+
     if (!mapboxgl.supported()) {
       setError('WebGL não suportado');
       return;
@@ -24,31 +30,40 @@ const MapTestSimple = () => {
     // Token
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xvdWRmYXJtYnIiLCJhIjoiY21lczV2Mnl4MGU4czJqcG96ZG1kNDFmdCJ9.GKcFLWcXdrQS2sLml5gcXA';
     console.log('4. Token configurado:', !!mapboxgl.accessToken);
-    
+
     // Container
     console.log('5. Container ref:', mapContainer.current);
-    
+
     if (!mapContainer.current) {
       setError('Container não encontrado');
       return;
     }
 
+    let mapInstance = null;
+
     try {
       setStatus('Criando mapa...');
-      
-      map.current = new mapboxgl.Map({
+
+      mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',
         center: [-74.5, 40],
-        zoom: 9
+        zoom: 9,
+        attributionControl: false,
+        maxParallelImageRequests: 16,
+        collectResourceTiming: false
       });
 
-      map.current.on('load', () => {
+      map.current = mapInstance;
+
+      mapInstance.on('load', () => {
+        if (abortController.signal.aborted) return;
         console.log('✅ MAPA CARREGOU!');
         setStatus('✅ Mapa carregado com sucesso!');
       });
 
-      map.current.on('error', (e) => {
+      mapInstance.on('error', (e) => {
+        if (abortController.signal.aborted) return;
         console.error('❌ Erro do mapa:', e);
         setError(`Erro do Mapbox: ${e.error?.message || 'Erro desconhecido'}`);
       });
@@ -59,7 +74,26 @@ const MapTestSimple = () => {
     }
 
     return () => {
-      if (map.current) map.current.remove();
+      console.log('🧹 Limpeza do mapa simples...');
+      abortController.abort();
+
+      if (map.current) {
+        try {
+          map.current.off();
+          setTimeout(() => {
+            try {
+              if (map.current && !map.current._removed) {
+                map.current.remove();
+              }
+            } catch (removeError) {
+              console.warn('⚠️ Erro ao remover mapa simples (ignorado):', removeError.message);
+            }
+          }, 0);
+          map.current = null;
+        } catch (cleanupError) {
+          console.warn('⚠️ Erro durante limpeza simples (ignorado):', cleanupError.message);
+        }
+      }
     };
   }, []);
 
