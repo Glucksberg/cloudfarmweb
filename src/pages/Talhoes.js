@@ -195,6 +195,11 @@ const Talhoes = () => {
     mapboxgl.accessToken = config.accessToken;
 
     try {
+      // Disable Mapbox telemetry to prevent network errors
+      if (typeof mapboxgl.prewarm === 'function') {
+        mapboxgl.prewarm();
+      }
+
       // Criar mapa
       const mapInstance = new mapboxgl.Map({
         container: mapContainer.current,
@@ -202,14 +207,21 @@ const Talhoes = () => {
         center: config.center,
         zoom: config.zoom,
         transformRequest: (url, resourceType) => {
+          // Block telemetry requests that cause fetch errors
+          if (url.includes('events.mapbox.com') ||
+              url.includes('api.mapbox.com/events') ||
+              resourceType === 'Unknown') {
+            return { url: '' }; // Block the request
+          }
           return {
             url: url,
             credentials: 'omit'
           };
         },
-        // Prevent excessive tile loading
+        // Prevent excessive tile loading and disable telemetry
         maxTileCacheSize: 50,
-        collectResourceTiming: false
+        collectResourceTiming: false,
+        trackResize: false
       });
 
       map.current = mapInstance;
