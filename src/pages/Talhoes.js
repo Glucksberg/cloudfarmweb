@@ -192,8 +192,6 @@ const Talhoes = () => {
       return;
     }
 
-    // Create abort controller for this initialization
-    abortController.current = new AbortController();
     const config = getMapboxConfig();
     mapboxgl.accessToken = config.accessToken;
 
