@@ -653,6 +653,12 @@ const Talhoes = () => {
     return () => {
       console.log('🧹 Cleaning up map...');
 
+      // Clear any pending updates
+      if (updateTimeout.current) {
+        clearTimeout(updateTimeout.current);
+        updateTimeout.current = null;
+      }
+
       // Clean up map instance
       if (map.current) {
         try {
@@ -667,6 +673,7 @@ const Talhoes = () => {
 
       setIsInitializing(false);
       setMapLoaded(false);
+      setIsUpdatingMap(false);
     };
   }, [tokenValid]);
 
