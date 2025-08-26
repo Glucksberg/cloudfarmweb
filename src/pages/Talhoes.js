@@ -395,6 +395,15 @@ const Talhoes = () => {
           return;
         }
 
+        // Ignore fetch errors from telemetry
+        if (e.error?.message?.includes('Failed to fetch') &&
+            (e.error?.stack?.includes('events.mapbox.com') ||
+             e.error?.stack?.includes('postPerformanceEvent') ||
+             e.error?.stack?.includes('postMapLoadEvent'))) {
+          console.log('📊 Telemetry request failed (ignoring)');
+          return;
+        }
+
         const handledError = handleMapboxError(e.error, mapInstance);
         setMapError(`Erro do mapa: ${handledError.message}`);
         setIsInitializing(false);
