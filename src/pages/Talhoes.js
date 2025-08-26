@@ -153,6 +153,29 @@ const Talhoes = () => {
     return coordinates[talhaoId] || [];
   };
 
+  // Block telemetry requests globally to prevent fetch errors
+  useEffect(() => {
+    const originalFetch = window.fetch;
+
+    window.fetch = function(...args) {
+      const url = args[0];
+      if (typeof url === 'string' &&
+          (url.includes('events.mapbox.com') ||
+           url.includes('api.mapbox.com/events') ||
+           url.includes('/ping'))) {
+        // Return a fake successful response for telemetry requests
+        console.log('🚫 Blocking telemetry request:', url);
+        return Promise.resolve(new Response('{}', { status: 200 }));
+      }
+      return originalFetch.apply(this, args);
+    };
+
+    // Cleanup: restore original fetch when component unmounts
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   // Test Mapbox token on component mount
   useEffect(() => {
     const validateToken = async () => {
@@ -974,7 +997,7 @@ const Talhoes = () => {
             </div>
           </div>
           <div className="info-card">
-            <span className="info-icon">📏</span>
+            <span className="info-icon">����</span>
             <div className="info-content">
               <span className="info-title">Área Total</span>
               <span className="info-value">{currentTalhoes.reduce((sum, t) => sum + t.area, 0)} ha</span>
