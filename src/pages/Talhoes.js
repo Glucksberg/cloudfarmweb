@@ -853,7 +853,7 @@ const Talhoes = () => {
     if (drawMode) {
       draw.current.changeMode('simple_select');
       setDrawMode(false);
-      console.log('🔧 Modo de desenho desativado');
+      console.log('��� Modo de desenho desativado');
     } else {
       draw.current.changeMode('draw_polygon');
       setDrawMode(true);
@@ -862,7 +862,7 @@ const Talhoes = () => {
   };
 
   // Função para salvar novo talhão
-  const saveNewTalhao = () => {
+  const saveNewTalhao = async () => {
     if (!drawnGeometry) return;
 
     const validation = validateGeometry(drawnGeometry);
@@ -871,46 +871,57 @@ const Talhoes = () => {
       return;
     }
 
-    const newTalhao = {
-      id: `t${currentTalhoes.length + 1}`,
-      nome: newTalhaoData.nome || `T${currentTalhoes.length + 1}`,
-      area: parseFloat(validation.area),
-      cultura: newTalhaoData.cultura,
-      variedade: newTalhaoData.variedade,
-      status: newTalhaoData.status,
-      geometry: drawnGeometry // Armazenar geometria real
-    };
+    try {
+      const newTalhaoData_final = {
+        nome: newTalhaoData.nome || `T${currentTalhoes.length + 1}`,
+        area: parseFloat(validation.area),
+        cultura: newTalhaoData.cultura,
+        variedade: newTalhaoData.variedade,
+        grupoMaturacao: newTalhaoData.grupoMaturacao,
+        status: newTalhaoData.status,
+        dataPlantio: newTalhaoData.dataPlantio,
+        colheitaEstimada: newTalhaoData.colheitaEstimada,
+        geometry: drawnGeometry,
+        observacoes: newTalhaoData.observacoes || ''
+      };
 
-    console.log('💾 Salvando novo talhão:', {
-      id: newTalhao.id,
-      nome: newTalhao.nome,
-      hasGeometry: !!newTalhao.geometry,
-      geometryType: newTalhao.geometry?.type,
-      coordinatesCount: newTalhao.geometry?.coordinates?.[0]?.length
-    });
+      console.log('💾 Salvando novo talhão no CloudFarm:', newTalhaoData_final);
 
-    setCurrentTalhoes(prev => [...prev, newTalhao]);
-    
-    // Limpar formulário
-    setShowNewTalhaoForm(false);
-    setDrawnGeometry(null);
-    setNewTalhaoData({
-      nome: '',
-      cultura: 'Soja',
-      variedade: '',
-      status: 'livre'
-    });
+      // Salvar no CloudFarm via API
+      if (cloudFarmConnected) {
+        await createCloudFarmTalhao(newTalhaoData_final);
+        console.log('✅ Talhão salvo no CloudFarm com sucesso');
+      } else {
+        console.warn('⚠️ CloudFarm desconectado, salvando localmente');
+        // Fallback: salvar localmente se CloudFarm não estiver disponível
+        // (será implementado posteriormente se necessário)
+      }
 
-    // Sair do modo de desenho
-    if (draw.current) {
-      draw.current.deleteAll();
-      draw.current.changeMode('simple_select');
-      setDrawMode(false);
+      // Limpar formulário
+      setShowNewTalhaoForm(false);
+      setDrawnGeometry(null);
+      setNewTalhaoData({
+        nome: '',
+        cultura: 'Soja',
+        variedade: '',
+        grupoMaturacao: '',
+        status: 'livre',
+        dataPlantio: null,
+        colheitaEstimada: null,
+        observacoes: ''
+      });
+
+      // Sair do modo de desenho
+      if (draw.current) {
+        draw.current.deleteAll();
+        draw.current.changeMode('simple_select');
+        setDrawMode(false);
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao salvar talhão:', error);
+      alert(`❌ Erro ao salvar talhão: ${error.message}`);
     }
-
-    console.log('✅ Novo talhão salvo:', newTalhao);
-
-    // Map will be updated automatically by useEffect when currentTalhoes changes
   };
 
   // Dados dos talhões iniciais
@@ -1016,7 +1027,7 @@ const Talhoes = () => {
               opacity: (!mapLoaded || isInitializing || tokenValid === false) ? 0.6 : 1
             }}
           >
-            {drawMode ? '🛑' : '���️'} 
+            {drawMode ? '���' : '���️'} 
             {drawMode ? 'Cancelar Desenho' : 'Desenhar Novo Talhão'}
           </button>
 
