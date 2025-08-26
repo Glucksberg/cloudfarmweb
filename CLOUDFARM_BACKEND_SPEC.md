@@ -560,16 +560,44 @@ module.exports = { app, broadcastEvent };
 ## 🧪 Testes
 
 ### Teste Manual com curl
+
+#### Autenticação
 ```bash
-# Health check
+# Login
+curl -X POST http://SEU_VPS_IP:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "usuario@exemplo.com",
+    "password": "senha123"
+  }'
+
+# Obter informações do usuário
+TOKEN="eyJhbGciOiJIUzI1NiIs..."
+curl http://SEU_VPS_IP:8080/api/auth/me \
+  -H "Authorization: Bearer $TOKEN"
+
+# Renovar token
+curl -X POST http://SEU_VPS_IP:8080/api/auth/refresh \
+  -H "Authorization: Bearer $TOKEN"
+
+# Logout
+curl -X POST http://SEU_VPS_IP:8080/api/auth/logout \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+#### Endpoints Protegidos
+```bash
+# Health check (público)
 curl http://SEU_VPS_IP:8080/api/health
 
-# Listar talhões
-curl http://SEU_VPS_IP:8080/api/talhoes
+# Listar talhões (protegido)
+curl http://SEU_VPS_IP:8080/api/talhoes \
+  -H "Authorization: Bearer $TOKEN"
 
-# Criar talhão
+# Criar talhão (protegido)
 curl -X POST http://SEU_VPS_IP:8080/api/talhoes \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
     "nome": "Teste API",
     "area_hectares": 100.0,
