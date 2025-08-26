@@ -705,21 +705,23 @@ const Talhoes = () => {
       <div className="draw-tools">
         <h3>🖊️ Ferramentas de Desenho</h3>
         <div className="draw-controls">
-          <button 
+          <button
             className={`draw-btn ${drawMode ? 'active' : ''}`}
             onClick={toggleDrawMode}
+            disabled={!mapLoaded || isInitializing || tokenValid === false}
             style={{
               backgroundColor: drawMode ? '#2196f3' : '#f0f0f0',
               color: drawMode ? 'white' : '#333',
               border: `2px solid ${drawMode ? '#2196f3' : '#ccc'}`,
               padding: '0.75rem 1.5rem',
               borderRadius: '8px',
-              cursor: 'pointer',
+              cursor: (!mapLoaded || isInitializing || tokenValid === false) ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
               fontWeight: 'bold',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              gap: '0.5rem',
+              opacity: (!mapLoaded || isInitializing || tokenValid === false) ? 0.6 : 1
             }}
           >
             {drawMode ? '🛑' : '🖊️'} 
