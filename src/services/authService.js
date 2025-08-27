@@ -1,8 +1,11 @@
+import CORSProxy from '../utils/corsProxy';
+
 class AuthService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_CLOUDFARM_API_URL || 'http://localhost:3001/api';
+    this.baseURL = process.env.REACT_APP_CLOUDFARM_API_URL || 'http://localhost:3001';
     this.TOKEN_KEY = 'jwt_token';
     this.USER_KEY = 'cloudfarm_user';
+    this.corsProxy = new CORSProxy();
   }
 
   /**
