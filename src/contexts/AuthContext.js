@@ -217,16 +217,16 @@ export const AuthProvider = ({ children }) => {
   /**
    * Renova o token
    */
-  const refreshToken = async () => {
+  const refreshToken = useCallback(async () => {
     try {
       const newToken = await authService.refreshToken();
       const user = authService.getUser();
-      
+
       dispatch({
         type: AUTH_ACTIONS.SET_AUTHENTICATED,
         payload: { user, token: newToken }
       });
-      
+
       return newToken;
     } catch (error) {
       console.error('Erro ao renovar token:', error);
@@ -234,7 +234,7 @@ export const AuthProvider = ({ children }) => {
       await logout();
       throw error;
     }
-  };
+  }, [logout]);
 
   /**
    * Atualiza dados do usuário
@@ -291,7 +291,7 @@ export const AuthProvider = ({ children }) => {
     isLoggingOut: state.authState === AUTH_STATES.LOGGING_OUT,
     hasError: state.authState === AUTH_STATES.ERROR,
     
-    // Fun��ões
+    // Funções
     login,
     logout,
     refreshToken,
