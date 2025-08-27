@@ -343,7 +343,7 @@ class CloudFarmAPI {
         break;
 
       default:
-        console.log('📨 Mensagem WebSocket não tratada:', message);
+        console.log('���� Mensagem WebSocket não tratada:', message);
     }
   }
 
@@ -472,36 +472,29 @@ class CloudFarmAPI {
     console.log('🔍 Testando conectividade básica com:', serverURL);
 
     try {
-      // Usar Promise.race para timeout mais confiável
+      // Fazer request mais simples para evitar CORS preflight
       const response = await Promise.race([
         fetch(serverURL, {
           method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          mode: 'no-cors' // Evita CORS preflight, mas não conseguimos ler resposta
         }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Connection timeout')), 8000)
+          setTimeout(() => reject(new Error('Connection timeout')), 5000)
         )
       ]);
 
-      if (response.ok) {
-        console.log('✅ Conexão básica com CloudFarm ativa');
-        return true;
-      } else {
-        console.warn('⚠️ CloudFarm respondeu com erro:', response.status);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ CloudFarm não acessível:', error.message || error);
+      // Com no-cors, sempre retorna response.type = 'opaque'
+      // Se chegou até aqui sem erro, o servidor está acessível
+      console.log('✅ Servidor acessível (modo no-cors)');
+      return true;
 
-      // Não relançar o erro, apenas retornar false
-      // O componente vai tratar isso apropriadamente
+    } catch (error) {
+      console.error('❌ Servidor não acessível:', error.message || error);
+
       if (error.message.includes('Failed to fetch')) {
-        console.log('💡 Possível causa: CORS não configurado ou servidor offline');
+        console.log('💡 Servidor offline ou firewall bloqueando');
       } else if (error.message.includes('timeout')) {
-        console.log('💡 Possível causa: Servidor muito lento ou inacessível');
+        console.log('💡 Servidor muito lento ou sobregregado');
       }
 
       return false;
