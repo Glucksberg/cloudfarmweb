@@ -346,12 +346,19 @@ export const useCloudFarmTalhoes = () => {
 
   // Reconectar manualmente
   const reconnect = useCallback(async () => {
+    if (!isAuthenticated) {
+      setError('Faça login para conectar ao CloudFarm');
+      return;
+    }
+
     setError(null);
     cloudFarmAPI.disconnect();
-    await checkConnection();
-    await loadTalhoes();
-    cloudFarmAPI.connectWebSocket();
-  }, [checkConnection, loadTalhoes]);
+    const isConnected = await checkConnection();
+    if (isConnected) {
+      await loadTalhoes();
+      cloudFarmAPI.connectWebSocket();
+    }
+  }, [isAuthenticated, checkConnection, loadTalhoes]);
 
   // ===== RETURN =====
 
