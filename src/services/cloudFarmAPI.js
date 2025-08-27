@@ -461,13 +461,36 @@ class CloudFarmAPI {
     return 'livre';
   }
 
-  // Verificar conectividade com a API
+  // Verificar conectividade básica (sem autenticação)
+  async checkBasicConnection() {
+    try {
+      const response = await fetch(this.baseURL.replace('/api', ''), {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        console.log('✅ Conexão básica com CloudFarm ativa');
+        return true;
+      } else {
+        console.warn('⚠️ CloudFarm respondeu com erro:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ CloudFarm não acessível:', error);
+      return false;
+    }
+  }
+
+  // Verificar conectividade com a API (com autenticação)
   async checkConnection() {
     try {
       const response = await this.makeAuthenticatedRequest(`${this.baseURL}/health`, {
         method: 'GET'
       });
-      
+
       if (response.ok) {
         console.log('✅ Conexão com CloudFarm API ativa');
         return true;
