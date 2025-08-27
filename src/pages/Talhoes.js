@@ -857,6 +857,10 @@ const Talhoes = () => {
       setIsInitializing(false);
       setMapLoaded(false);
       setIsUpdatingMap(false);
+
+      // Remove component-level error listeners
+      window.removeEventListener('error', componentAbortErrorHandler);
+      window.removeEventListener('unhandledrejection', componentAbortErrorHandler);
     };
   }, [tokenValid]);
 
@@ -1048,7 +1052,7 @@ const Talhoes = () => {
         await createCloudFarmTalhao(newTalhaoData_final);
         console.log('✅ Talhão salvo no CloudFarm com sucesso');
       } else {
-        console.warn('���️ CloudFarm desconectado, salvando localmente');
+        console.warn('⚠️ CloudFarm desconectado, salvando localmente');
         // Fallback: salvar localmente se CloudFarm não estiver disponível
         // (ser�� implementado posteriormente se necessário)
       }
@@ -1572,7 +1576,7 @@ const Talhoes = () => {
             </div>
           </div>
           <div className="info-card">
-            <span className="info-icon">�����</span>
+            <span className="info-icon">����</span>
             <div className="info-content">
               <span className="info-title">Talhões Cadastrados</span>
               <span className="info-value">{statistics?.total || 0} unidades</span>
