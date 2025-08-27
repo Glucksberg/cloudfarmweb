@@ -13,7 +13,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
   const [localError, setLocalError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Limpar erros quando modal abre/fecha
+  // Limpar erros quando modal abre
   useEffect(() => {
     if (isOpen) {
       clearError();
