@@ -463,12 +463,22 @@ class CloudFarmAPI {
 
   // Verificar conectividade básica (sem autenticação)
   async checkBasicConnection() {
+    // Determinar URL base do servidor
+    let serverURL = this.baseURL;
+    if (serverURL.includes('/api')) {
+      serverURL = serverURL.replace('/api', '');
+    }
+
+    console.log('🔍 Testando conectividade básica com:', serverURL);
+
     try {
-      const response = await fetch(this.baseURL.replace('/api', ''), {
+      const response = await fetch(serverURL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        // Timeout para evitar espera muito longa
+        signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
       });
 
       if (response.ok) {
@@ -479,7 +489,15 @@ class CloudFarmAPI {
         return false;
       }
     } catch (error) {
-      console.error('❌ CloudFarm não acessível:', error);
+      console.error('❌ CloudFarm não acessível:', error.message || error);
+
+      // Diferentes tipos de erro têm diferentes causas
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.log('💡 Possível causa: CORS não configurado ou servidor offline');
+      } else if (error.name === 'AbortError') {
+        console.log('💡 Possível causa: Timeout - servidor muito lento');
+      }
+
       return false;
     }
   }
