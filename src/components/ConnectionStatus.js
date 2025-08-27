@@ -17,7 +17,10 @@ const ConnectionStatus = () => {
           const isBasicConnected = await checkBasicConnection();
           setBasicConnection(isBasicConnected);
         } catch (error) {
-          console.warn('Erro na verificação básica:', error);
+          // Não logar erros suprimidos ou AbortErrors
+          if (!error.suppressed && error.name !== 'AbortError') {
+            console.warn('Erro na verificação básica:', error);
+          }
           setBasicConnection(false);
         } finally {
           setChecking(false);
