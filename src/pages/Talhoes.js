@@ -10,7 +10,7 @@ import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/ma
 import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 import ConnectionStatus from '../components/ConnectionStatus';
 // MixedContentError removido - HTTPS agora configurado ✅
-import DirectCertificateTest from '../components/DirectCertificateTest';
+import HTTPSSuccessIndicator from '../components/HTTPSSuccessIndicator';
 
 // Ultra-aggressive global AbortError suppression before component loads
 if (typeof window !== 'undefined' && !window.__ABORT_ERROR_SUPPRESSED__) {
@@ -1127,8 +1127,8 @@ const Talhoes = () => {
       {/* Status de Conexão CloudFarm */}
       <ConnectionStatus />
 
-      {/* Teste Direto HTTPS - Certificado Auto-assinado */}
-      <DirectCertificateTest />
+      {/* Indicador de Sucesso HTTPS */}
+      <HTTPSSuccessIndicator />
 
       {/* HTTPS Configurado com Sucesso! */}
       {!talhoesLoading && (
