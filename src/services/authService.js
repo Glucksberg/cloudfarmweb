@@ -49,31 +49,30 @@ class AuthService {
       // Melhorar mensagem de erro para problemas de conectividade
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
         const helpMessage = `
-🚨 ERRO DE CONECTIVIDADE 🚨
+🚨 BACKEND CLOUDFARM OFFLINE 🚨
 
-Não foi possível conectar ao backend CloudFarm em:
-➡️ ${this.baseURL}/auth/login
+O backend CloudFarm parou de funcionar!
+➡️ Tentativa de conexão: ${this.baseURL}/auth/login
 
-POSSÍVEIS SOLUÇÕES:
+🔧 SOLUÇÃO MAIS COMUM:
+1️⃣ REINICIAR BACKEND: O script do servidor CloudFarm parou
+2️⃣ VERIFICAR PORTA: Confirme se está rodando na porta correta
+3️⃣ USAR DIAGNÓSTICO: Clique no botão "🧪 Testar Conexão" na tela
 
-1️⃣ VERIFICAR SE O BACKEND ESTÁ RODANDO:
-   - Para desenvolvimento local: verifique se o servidor está na porta 3001
-   - Para VPS CloudFarm: verifique se está na porta 8080
-
-2️⃣ TESTAR CONECTIVIDADE:
+📋 COMANDOS RÁPIDOS:
+   # Verificar se backend está rodando:
    curl ${this.baseURL}/health
 
-3️⃣ VERIFICAR CONFIGURAÇÃO:
-   - Arquivo .env criado com a URL correta
-   - Variável REACT_APP_CLOUDFARM_API_URL
+   # Reiniciar backend CloudFarm:
+   cd /caminho/para/cloudfarm-backend
+   node server.js
 
-4️⃣ CONFIGURAÇÕES COMUNS:
-   - Desenvolvimento: http://localhost:3001/api
-   - VPS CloudFarm: http://SEU_VPS_IP:8080/api
+💡 DICA: Este erro SEMPRE indica que o backend não está acessível.
+         A solução é simplesmente reiniciar o servidor.
         `;
 
         console.error(helpMessage);
-        throw new Error('Backend CloudFarm não está acessível. Verifique se o servidor está rodando e a URL está correta.');
+        throw new Error('🚨 Backend CloudFarm offline! Reinicie o servidor e tente novamente.');
       }
 
       throw error;
