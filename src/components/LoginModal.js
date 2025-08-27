@@ -82,7 +82,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
       
       if (result.success) {
         // Login bem-sucedido
-        setFormData({ email: '', password: '' });
+        setFormData({ username: '', password: '' });
         
         if (onSuccess) {
           onSuccess(result.user);
