@@ -44,7 +44,7 @@ class AuthService {
         throw new Error(data.message || 'Resposta inválida do servidor');
       }
     } catch (error) {
-      console.error('�� Erro no login:', error);
+      console.error('❌ Erro no login:', error);
 
       // Melhorar mensagem de erro para problemas de conectividade
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
@@ -74,6 +74,27 @@ Backend tentando: ${this.baseURL} (localhost)
    - Atualize .env com URL do ngrok
 
 💡 Para desenvolvimento, sempre use setup local!
+        ` : (isCloudEnvironment && !isLocalhost) ? `
+🌐 PROBLEMA DE CONEXÃO CLOUD → VPS 🌐
+
+Frontend rodando em: ${window.location.origin} (cloud)
+Backend tentando: ${this.baseURL}/auth/login (VPS)
+
+❌ POSSÍVEIS PROBLEMAS:
+
+1️⃣ ENDPOINT NÃO EXISTE:
+   - Teste: curl -X POST ${this.baseURL}/auth/login
+   - Ou tente: curl ${this.baseURL}/login
+
+2️⃣ CORS NÃO CONFIGURADO:
+   - Backend precisa permitir ${window.location.origin}
+   - Verificar headers Access-Control-Allow-Origin
+
+3️⃣ FIREWALL/CONECTIVIDADE:
+   - Teste: curl ${this.baseURL}/
+   - Verificar se VPS aceita conexões externas
+
+💡 Execute no VPS: pm2 logs cloudfarm-api
         ` : `
 🚨 BACKEND CLOUDFARM OFFLINE 🚨
 
@@ -82,15 +103,17 @@ Tentativa de conexão: ${this.baseURL}/auth/login
 🔧 SOLUÇÕES:
 1️⃣ Verificar se backend está rodando: pm2 list
 2️⃣ Reiniciar se necessário: pm2 restart cloudfarm-api
-3️⃣ Testar conectividade: curl ${this.baseURL}/health
+3️⃣ Testar conectividade: curl ${this.baseURL}/
 
 💡 Verifique os logs: pm2 logs cloudfarm-api
         `;
 
         console.error(helpMessage);
 
-        const errorMessage = isCloudEnvironment
+        const errorMessage = (isCloudEnvironment && isLocalhost)
           ? '🌐 Frontend em cloud não consegue acessar localhost. Use desenvolvimento local ou exponha o backend!'
+          : (isCloudEnvironment && !isLocalhost)
+          ? '🌐 Erro de conexão cloud→VPS. Verifique endpoint /auth/login, CORS e conectividade!'
           : '🚨 Backend CloudFarm não está acessível. Verifique se está rodando!';
 
         throw new Error(errorMessage);
