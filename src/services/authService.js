@@ -75,27 +75,38 @@ Backend tentando: ${this.baseURL} (localhost)
 
 💡 Para desenvolvimento, sempre use setup local!
         ` : (isCloudEnvironment && !isLocalhost) ? `
-🌐 PROBLEMA DE CONEXÃO CLOUD → VPS 🌐
+🚨 PROBLEMA DE CORS CONFIRMADO 🚨
 
-Frontend rodando em: ${window.location.origin} (cloud)
-Backend tentando: ${this.baseURL}/auth/login (VPS)
+Frontend: ${window.location.origin} (fly.dev)
+Backend: ${this.baseURL} (VPS) ✅ ONLINE
 
-❌ POSSÍVEIS PROBLEMAS:
+❌ CORS headers ausentes no backend
 
-1️⃣ ENDPOINT NÃO EXISTE:
-   - Teste: curl -X POST ${this.baseURL}/auth/login
-   - Ou tente: curl ${this.baseURL}/login
+🔧 CONFIGURAR CORS NO VPS:
 
-2️⃣ CORS NÃO CONFIGURADO (MAIS PROVÁVEL):
-   - Backend não aceita requests de ${window.location.origin}
-   - Execute no VPS para configurar CORS:
-     sudo nano /root/CloudFarm/[arquivo-principal].js
-     Adicionar: app.use(cors({ origin: "*" }))
+1️⃣ SSH no VPS:
+   ssh root@178.156.157.146
+   cd ~/CloudFarm
 
-3️⃣ FIREWALL/CONECTIVIDADE:
-   - Teste direto no VPS: curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"username":"Markus","password":"Aquarela1989#"}'
+2️⃣ Editar arquivo principal:
+   nano src/index.js
 
-💡 SOLUÇÃO RÁPIDA: Use desenvolvimento local!
+3️⃣ Adicionar APÓS "const app = express()":
+   app.use((req, res, next) => {
+     res.header('Access-Control-Allow-Origin', '*');
+     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+     if (req.method === 'OPTIONS') { res.sendStatus(200); } else { next(); }
+   });
+
+4️⃣ Salvar e reiniciar:
+   Ctrl+X, Y, Enter
+   pm2 restart cloudfarm-api
+
+🚀 ALTERNATIVA: DESENVOLVIMENTO LOCAL
+   git clone [repo] && npm install && npm start
+
+💡 Backend está OK, só precisa configurar CORS!
         ` : `
 🚨 BACKEND CLOUDFARM OFFLINE 🚨
 
