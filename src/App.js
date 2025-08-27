@@ -127,27 +127,29 @@ if (typeof window !== 'undefined' && !window.__APP_ABORT_ERROR_SUPPRESSED__) {
 
 function App() {
   return (
-    <AuthProvider>
-      <AuthLoadingScreen>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="logs" element={<Logs />} />
-              <Route path="talhoes" element={<Talhoes />} />
-              <Route path="maptest" element={<MapTest />} />
-              <Route path="mapsimple" element={<MapTestSimple />} />
-              <Route path="mapbasic" element={<MapTestBasic />} />
-              <Route path="mapfinal" element={<MapTestFinal />} />
-              <Route path="estoque" element={<Estoque />} />
-              <Route path="equipe" element={<Equipe />} />
-              <Route path="configuracoes" element={<Configuracoes />} />
-            </Route>
-          </Routes>
-        </Router>
-      </AuthLoadingScreen>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AuthLoadingScreen>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="logs" element={<Logs />} />
+                <Route path="talhoes" element={<Talhoes />} />
+                <Route path="maptest" element={<MapTest />} />
+                <Route path="mapsimple" element={<MapTestSimple />} />
+                <Route path="mapbasic" element={<MapTestBasic />} />
+                <Route path="mapfinal" element={<MapTestFinal />} />
+                <Route path="estoque" element={<Estoque />} />
+                <Route path="equipe" element={<Equipe />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+              </Route>
+            </Routes>
+          </Router>
+        </AuthLoadingScreen>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
