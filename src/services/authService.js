@@ -48,31 +48,50 @@ class AuthService {
 
       // Melhorar mensagem de erro para problemas de conectividade
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-        const helpMessage = `
+        const isCloudEnvironment = window.location.hostname.includes('fly.dev') ||
+                                   window.location.hostname.includes('herokuapp.com') ||
+                                   window.location.hostname.includes('vercel.app');
+
+        const helpMessage = isCloudEnvironment ? `
+🌐 PROBLEMA DE CONFIGURAÇÃO CLOUD/LOCAL 🌐
+
+Frontend rodando em: ${window.location.origin} (cloud)
+Backend tentando: ${this.baseURL} (localhost)
+
+❌ PROBLEMA: Cloud não consegue acessar localhost
+
+🚀 SOLUÇÕES:
+
+1️⃣ DESENVOLVIMENTO LOCAL (Recomendado):
+   - Baixe o projeto: git clone [repo]
+   - Rode localmente: npm start
+   - Acesse: http://localhost:3000
+
+2️⃣ EXPOR BACKEND (Alternativa):
+   - Use ngrok: ngrok http 3001
+   - Atualize .env com URL do ngrok
+
+💡 Para desenvolvimento, sempre use setup local!
+        ` : `
 🚨 BACKEND CLOUDFARM OFFLINE 🚨
 
-O backend CloudFarm parou de funcionar!
-➡️ Tentativa de conexão: ${this.baseURL}/auth/login
+Tentativa de conexão: ${this.baseURL}/auth/login
 
-🔧 SOLUÇÃO MAIS COMUM:
-1️⃣ REINICIAR BACKEND: O script do servidor CloudFarm parou
-2️⃣ VERIFICAR PORTA: Confirme se está rodando na porta correta
-3️⃣ USAR DIAGNÓSTICO: Clique no botão "🧪 Testar Conexão" na tela
+🔧 SOLUÇÕES:
+1️⃣ Verificar se backend está rodando: pm2 list
+2️⃣ Reiniciar se necessário: pm2 restart cloudfarm-api
+3️⃣ Testar conectividade: curl ${this.baseURL}/health
 
-📋 COMANDOS RÁPIDOS:
-   # Verificar se backend está rodando:
-   curl ${this.baseURL}/health
-
-   # Reiniciar backend CloudFarm:
-   cd /caminho/para/cloudfarm-backend
-   node server.js
-
-💡 DICA: Este erro SEMPRE indica que o backend não está acessível.
-         A solução é simplesmente reiniciar o servidor.
+💡 Verifique os logs: pm2 logs cloudfarm-api
         `;
 
         console.error(helpMessage);
-        throw new Error('🚨 Backend CloudFarm offline! Reinicie o servidor e tente novamente.');
+
+        const errorMessage = isCloudEnvironment
+          ? '🌐 Frontend em cloud não consegue acessar localhost. Use desenvolvimento local ou exponha o backend!'
+          : '🚨 Backend CloudFarm não está acessível. Verifique se está rodando!';
+
+        throw new Error(errorMessage);
       }
 
       throw error;
