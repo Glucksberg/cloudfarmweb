@@ -163,12 +163,12 @@ export const AuthProvider = ({ children }) => {
    * @param {string} password
    * @returns {Promise<Object>}
    */
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     dispatch({ type: AUTH_ACTIONS.SET_LOGGING_IN });
 
     try {
       const result = await authService.login(email, password);
-      
+
       if (result.success) {
         dispatch({
           type: AUTH_ACTIONS.SET_AUTHENTICATED,
@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }) => {
             token: result.token
           }
         });
-        
+
         return { success: true, user: result.user };
       } else {
         throw new Error('Login falhou');
@@ -188,15 +188,15 @@ export const AuthProvider = ({ children }) => {
         type: AUTH_ACTIONS.SET_ERROR,
         payload: { error: errorMessage }
       });
-      
+
       // Após um tempo, voltar para unauthenticated
       setTimeout(() => {
         dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
       }, 3000);
-      
+
       throw error;
     }
-  };
+  }, []);
 
   /**
    * Realiza logout
