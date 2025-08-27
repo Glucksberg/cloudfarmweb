@@ -125,7 +125,7 @@ Tentativa de conexão: ${this.baseURL}/auth/login
         const errorMessage = (isCloudEnvironment && isLocalhost)
           ? '🌐 Frontend em cloud não consegue acessar localhost. Use desenvolvimento local!'
           : (isCloudEnvironment && !isLocalhost)
-          ? '🚨 PROBLEMA DE CORS! Backend CloudFarm não aceita requests do fly.dev. Configure CORS no VPS ou use desenvolvimento local!'
+          ? '🚨 CORS BLOQUEADO! Edite ~/CloudFarm/src/index.js no VPS para adicionar headers CORS ou use desenvolvimento local!'
           : '🚨 Backend CloudFarm não está acessível. Verifique se está rodando!';
 
         throw new Error(errorMessage);
