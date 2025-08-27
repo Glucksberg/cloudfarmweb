@@ -263,17 +263,27 @@ export const useCloudFarmTalhoes = () => {
 
   // ===== INICIALIZAÇÃO =====
 
-  // Carregar dados iniciais e conectar WebSocket
+  // Carregar dados iniciais e conectar WebSocket (só quando autenticado)
   useEffect(() => {
     const initialize = async () => {
+      if (!isAuthenticated) {
+        // Se não autenticado, limpar dados e desconectar
+        setTalhoes([]);
+        setStatistics(null);
+        setConnected(false);
+        setError(null);
+        cloudFarmAPI.disconnect();
+        return;
+      }
+
       // Verificar conexão
       const isConnected = await checkConnection();
-      
+
       if (isConnected) {
         // Carregar dados
         await loadTalhoes();
         await loadStatistics();
-        
+
         // Conectar WebSocket para atualizações em tempo real
         cloudFarmAPI.connectWebSocket();
       }
@@ -281,15 +291,20 @@ export const useCloudFarmTalhoes = () => {
 
     initialize();
 
-    // Verificar conexão periodicamente
-    const connectionInterval = setInterval(checkConnection, 30000); // 30 segundos
+    let connectionInterval;
+    if (isAuthenticated) {
+      // Verificar conexão periodicamente só se autenticado
+      connectionInterval = setInterval(checkConnection, 30000); // 30 segundos
+    }
 
     // Cleanup
     return () => {
-      clearInterval(connectionInterval);
+      if (connectionInterval) {
+        clearInterval(connectionInterval);
+      }
       isMounted.current = false;
     };
-  }, [checkConnection, loadTalhoes, loadStatistics]);
+  }, [isAuthenticated, checkConnection, loadTalhoes, loadStatistics]);
 
   // ===== UTILIDADES =====
 
