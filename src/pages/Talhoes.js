@@ -9,11 +9,11 @@ import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 import ConnectionStatus from '../components/ConnectionStatus';
-import SimpleVPSChecker from '../components/SimpleVPSChecker';
+import MixedContentError from '../components/MixedContentError';
 
 // Ultra-aggressive global AbortError suppression before component loads
 if (typeof window !== 'undefined' && !window.__ABORT_ERROR_SUPPRESSED__) {
-  console.log('�� Setting up ultra-aggressive AbortError suppression...');
+  console.log('🚫 Setting up ultra-aggressive AbortError suppression...');
 
   // Store originals
   const _originalConsoleError = console.error;
@@ -1126,8 +1126,8 @@ const Talhoes = () => {
       {/* Status de Conexão CloudFarm */}
       <ConnectionStatus />
 
-      {/* Diagnóstico simplificado - VPS inacessível */}
-      <SimpleVPSChecker />
+      {/* Mixed Content Error - HTTPS não pode acessar HTTP */}
+      <MixedContentError />
 
       {talhoesLoading && (
         <div style={{
