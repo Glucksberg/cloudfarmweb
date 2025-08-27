@@ -15,12 +15,12 @@ class AuthService {
     try {
       console.log(`🔌 Tentando conectar ao backend: ${this.baseURL}/api/auth/login`);
 
-      const response = await this.corsProxy.makeRequest(`${this.baseURL}/api/auth/login`, {
+      const response = await fetch(`${this.baseURL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: { username, password }
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
