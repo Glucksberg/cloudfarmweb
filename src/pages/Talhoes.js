@@ -1126,6 +1126,9 @@ const Talhoes = () => {
       {/* Status de Conexão CloudFarm */}
       <ConnectionStatus />
 
+      {/* Diagnóstico de conexão VPS */}
+      <VPSConnectionDiagnostic />
+
       {talhoesLoading && (
         <div style={{
           textAlign: 'center',
