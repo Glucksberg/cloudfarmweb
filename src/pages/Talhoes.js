@@ -9,6 +9,7 @@ import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 import ConnectionStatus from '../components/ConnectionStatus';
+import VPSConnectionDiagnostic from '../components/VPSConnectionDiagnostic';
 
 // Ultra-aggressive global AbortError suppression before component loads
 if (typeof window !== 'undefined' && !window.__ABORT_ERROR_SUPPRESSED__) {
