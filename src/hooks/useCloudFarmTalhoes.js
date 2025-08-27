@@ -344,6 +344,17 @@ export const useCloudFarmTalhoes = () => {
     };
   }, [talhoes, getTalhoesByStatus, getAreaTotal]);
 
+  // Verificar conectividade básica (sem autenticação)
+  const checkBasicConnection = useCallback(async () => {
+    try {
+      const isConnected = await cloudFarmAPI.checkBasicConnection();
+      return isConnected;
+    } catch (error) {
+      console.error('❌ Erro ao verificar conectividade básica:', error);
+      return false;
+    }
+  }, []);
+
   // Reconectar manualmente
   const reconnect = useCallback(async () => {
     if (!isAuthenticated) {
