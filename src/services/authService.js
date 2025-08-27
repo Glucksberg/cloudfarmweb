@@ -89,17 +89,18 @@ Backend tentando: ${this.baseURL}/auth/login (VPS)
    - Teste: curl -X POST ${this.baseURL}/auth/login
    - Ou tente: curl ${this.baseURL}/login
 
-2️⃣ CORS NÃO CONFIGURADO:
-   - Backend precisa permitir ${window.location.origin}
-   - Verificar headers Access-Control-Allow-Origin
+2️⃣ CORS NÃO CONFIGURADO (MAIS PROVÁVEL):
+   - Backend não aceita requests de ${window.location.origin}
+   - Execute no VPS para configurar CORS:
+     sudo nano /root/CloudFarm/[arquivo-principal].js
+     Adicionar: app.use(cors({ origin: "*" }))
 
 3️⃣ FIREWALL/CONECTIVIDADE:
-   - Teste: curl ${this.baseURL}/
-   - Verificar se VPS aceita conexões externas
+   - Teste direto no VPS: curl -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"username":"Markus","password":"Aquarela1989#"}'
 
-💡 Execute no VPS: pm2 logs cloudfarm-api
+💡 SOLUÇÃO RÁPIDA: Use desenvolvimento local!
         ` : `
-🚨 BACKEND CLOUDFARM OFFLINE 🚨
+🚨 BACKEND CLOUDFARM OFFLINE ���
 
 Tentativa de conexão: ${this.baseURL}/auth/login
 
