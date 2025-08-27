@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserInfo from './UserInfo';
 import LoginModal from './LoginModal';
+import ConnectionDiagnostic from './ConnectionDiagnostic';
 import './Layout.css';
 
 const Layout = () => {
