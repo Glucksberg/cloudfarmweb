@@ -7,18 +7,18 @@ class AuthService {
 
   /**
    * Realiza login no CloudFarm backend
-   * @param {string} email - Email do usuário
+   * @param {string} username - Username do usuário
    * @param {string} password - Senha do usuário
    * @returns {Promise<Object>} Dados do usuário e token
    */
-  async login(email, password) {
+  async login(username, password) {
     try {
       const response = await fetch(`${this.baseURL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
