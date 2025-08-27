@@ -1,0 +1,372 @@
+/* WebSocket Status Component Styles */
+
+.websocket-status {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Status Header */
+.ws-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.ws-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ws-status-indicator.connected .ws-status-text {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.ws-status-indicator.disconnected .ws-status-text {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.ws-status-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Buttons */
+.ws-btn {
+  padding: 0.25rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.ws-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ws-btn-connect {
+  background: #28a745;
+  color: white;
+}
+
+.ws-btn-disconnect {
+  background: #dc3545;
+  color: white;
+}
+
+.ws-btn-subscribe {
+  background: #007bff;
+  color: white;
+}
+
+.ws-btn-send {
+  background: #17a2b8;
+  color: white;
+}
+
+.ws-btn-clear {
+  background: #6c757d;
+  color: white;
+}
+
+.ws-btn-remove {
+  background: #dc3545;
+  color: white;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+}
+
+.ws-btn-small {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.ws-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error Display */
+.ws-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  color: #721c24;
+  margin-top: 0.5rem;
+}
+
+/* Details Section */
+.ws-details {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.ws-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ws-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ws-detail-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.ws-detail-value {
+  font-size: 0.875rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Channels */
+.ws-channels {
+  margin-top: 1rem;
+}
+
+.ws-channels-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.ws-channels-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ws-channel-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #e9ecef;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.ws-channel-name {
+  color: #495057;
+  font-family: 'Courier New', monospace;
+}
+
+/* Subscribe Form */
+.ws-subscribe {
+  margin-top: 1rem;
+}
+
+.ws-subscribe-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.ws-subscribe-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Messages Section */
+.ws-messages {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.ws-messages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.ws-messages-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.ws-messages-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ws-messages-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  background: white;
+}
+
+.ws-no-messages {
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.ws-message {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.ws-message:last-child {
+  border-bottom: none;
+}
+
+.ws-message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.ws-message-channel {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  background: #007bff;
+  color: white;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+}
+
+.ws-message-time {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.ws-message-content {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  background: #f8f9fa;
+  padding: 0.25rem;
+  border-radius: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Send Message Form */
+.ws-send-message {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f8f9fa;
+}
+
+.ws-send-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Form Elements */
+.ws-input {
+  flex: 1;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.ws-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.ws-input-message {
+  flex: 2;
+}
+
+.ws-select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ws-status-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .ws-subscribe-form {
+    flex-direction: column;
+  }
+
+  .ws-send-form {
+    flex-direction: column;
+  }
+
+  .ws-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ws-channels-list {
+    flex-direction: column;
+  }
+}
+
+/* Auth Loading Screen */
+.auth-loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+  color: #6c757d;
+  font-size: 0.875rem;
+}
