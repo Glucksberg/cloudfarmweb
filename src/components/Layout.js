@@ -152,6 +152,15 @@ const Layout = () => {
           </div>
         </div>
       </footer>
+
+      {/* Modal de Login */}
+      {showLoginModal && (
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          onSuccess={() => setShowLoginModal(false)}
+        />
+      )}
     </div>
   );
 };
