@@ -78,7 +78,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
     }
 
     try {
-      const result = await login(formData.email, formData.password);
+      const result = await login(formData.username, formData.password);
       
       if (result.success) {
         // Login bem-sucedido
