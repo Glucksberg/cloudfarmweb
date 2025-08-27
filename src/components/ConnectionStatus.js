@@ -102,14 +102,14 @@ const ConnectionStatus = () => {
           status: 'server-offline',
           color: '#f44336',
           icon: '🔴',
-          message: 'Servidor CloudFarm Offline'
+          message: 'Servidor CloudFarm Inacessível (CORS ou Offline)'
         };
       } else {
         return {
           status: 'unknown',
           color: '#9e9e9e',
           icon: '⚪',
-          message: 'Status desconhecido'
+          message: 'Verificando servidor...'
         };
       }
     }
