@@ -276,9 +276,9 @@ export const AuthProvider = ({ children }) => {
    * Verifica se o usuário é admin
    * @returns {boolean}
    */
-  const isAdmin = () => {
+  const isAdmin = useCallback(() => {
     return hasRole('admin');
-  };
+  }, [hasRole]);
 
   // Valores e funções disponíveis no contexto
   const contextValue = {
