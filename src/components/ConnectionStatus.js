@@ -37,12 +37,23 @@ const ConnectionStatus = () => {
   }, [isAuthenticated, checkBasicConnection]);
 
   const handleReconnect = async () => {
-    if (isAuthenticated) {
-      await reconnect();
-    } else {
-      setChecking(true);
-      const isBasicConnected = await checkBasicConnection();
-      setBasicConnection(isBasicConnected);
+    if (checking) return; // Evitar múltiplas tentativas simultâneas
+
+    try {
+      if (isAuthenticated) {
+        setChecking(true);
+        await reconnect();
+      } else {
+        setChecking(true);
+        const isBasicConnected = await checkBasicConnection();
+        setBasicConnection(isBasicConnected);
+      }
+    } catch (error) {
+      console.warn('Erro na reconexão:', error);
+      if (!isAuthenticated) {
+        setBasicConnection(false);
+      }
+    } finally {
       setChecking(false);
     }
   };
