@@ -27,14 +27,13 @@ const ConnectionStatus = () => {
       // Aguardar um pouco antes da primeira verificação
       const initialTimeout = setTimeout(checkBasic, 2000); // 2 segundos
 
-      return () => {
-        clearTimeout(initialTimeout);
-        if (interval) clearInterval(interval);
-      };
-
       // Verificar periodicamente mas com menos frequência
       const interval = setInterval(checkBasic, 60000); // 1 minuto
-      return () => clearInterval(interval);
+
+      return () => {
+        clearTimeout(initialTimeout);
+        clearInterval(interval);
+      };
     } else {
       setBasicConnection(null);
       setChecking(false);
