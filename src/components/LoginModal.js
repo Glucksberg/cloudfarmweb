@@ -183,7 +183,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
           <button
             type="submit"
             className="login-button"
-            disabled={isLoggingIn || !formData.email || !formData.password}
+            disabled={isLoggingIn || !formData.username || !formData.password}
           >
             {isLoggingIn ? 'Fazendo login...' : 'Entrar'}
           </button>
