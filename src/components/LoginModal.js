@@ -24,13 +24,17 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
 
   // Limpar erro local quando dados do form mudam
   useEffect(() => {
-    if (localError) {
-      setLocalError('');
-    }
-  }, [formData, localError]);
+    setLocalError('');
+  }, [formData.email, formData.password]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Limpar erro local quando usuário começa a digitar
+    if (localError) {
+      setLocalError('');
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
