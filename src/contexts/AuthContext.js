@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import authService from '../services/authService';
 
 // Estados de autenticação
@@ -259,9 +259,9 @@ export const AuthProvider = ({ children }) => {
   /**
    * Limpa erro atual
    */
-  const clearError = () => {
+  const clearError = useCallback(() => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
-  };
+  }, []);
 
   /**
    * Verifica se o usuário tem uma role específica
