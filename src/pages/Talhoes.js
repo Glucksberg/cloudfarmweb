@@ -640,32 +640,56 @@ const Talhoes = () => {
       // Adicionar controles de navegação
       mapInstance.addControl(new mapboxgl.NavigationControl());
 
-      // Evento de carregamento
+      // Evento de carregamento with AbortError protection
       mapInstance.on('load', () => {
-        console.log('🎉 Mapa carregado com sucesso!');
+        try {
+          console.log('🎉 Mapa carregado com sucesso!');
 
-        // Adicionar polígonos dos talhões existentes
-        addTalhoesLayer();
+          // Adicionar polígonos dos talhões existentes
+          addTalhoesLayer();
 
-        setMapLoaded(true);
-        setIsInitializing(false);
+          setMapLoaded(true);
+          setIsInitializing(false);
 
-        // Listeners para talhões existentes
-        mapInstance.on('click', 'talhoes-layer', (e) => {
-          if (e.features.length > 0) {
-            const talhaoId = e.features[0].properties.id;
-            console.log('🎯 Talhão clicado:', talhaoId);
-            setSelectedTalhao(talhaoId);
+          // Listeners para talhões existentes with error protection
+          mapInstance.on('click', 'talhoes-layer', (e) => {
+            try {
+              if (e.features.length > 0) {
+                const talhaoId = e.features[0].properties.id;
+                console.log('🎯 Talhão clicado:', talhaoId);
+                setSelectedTalhao(talhaoId);
+              }
+            } catch (error) {
+              if (error.name !== 'AbortError') {
+                console.error('❌ Erro no click do talhão:', error);
+              }
+            }
+          });
+
+          mapInstance.on('mouseenter', 'talhoes-layer', () => {
+            try {
+              mapInstance.getCanvas().style.cursor = 'pointer';
+            } catch (error) {
+              if (error.name !== 'AbortError') {
+                console.error('❌ Erro no mouseenter:', error);
+              }
+            }
+          });
+
+          mapInstance.on('mouseleave', 'talhoes-layer', () => {
+            try {
+              mapInstance.getCanvas().style.cursor = '';
+            } catch (error) {
+              if (error.name !== 'AbortError') {
+                console.error('❌ Erro no mouseleave:', error);
+              }
+            }
+          });
+        } catch (error) {
+          if (error.name !== 'AbortError') {
+            console.error('❌ Erro no evento load do mapa:', error);
           }
-        });
-
-        mapInstance.on('mouseenter', 'talhoes-layer', () => {
-          mapInstance.getCanvas().style.cursor = 'pointer';
-        });
-
-        mapInstance.on('mouseleave', 'talhoes-layer', () => {
-          mapInstance.getCanvas().style.cursor = '';
-        });
+        }
       });
 
       // Event listeners para desenho
@@ -993,7 +1017,7 @@ const Talhoes = () => {
       } else {
         console.warn('⚠️ CloudFarm desconectado, salvando localmente');
         // Fallback: salvar localmente se CloudFarm não estiver disponível
-        // (será implementado posteriormente se necessário)
+        // (ser�� implementado posteriormente se necessário)
       }
 
       // Limpar formulário
