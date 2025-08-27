@@ -172,9 +172,21 @@ class CloudFarmAPI {
 
   // Conectar WebSocket para atualizações em tempo real
   connectWebSocket() {
+    // Verificar se WebSocket está desabilitado devido a mixed content
+    if (process.env.REACT_APP_DISABLE_WEBSOCKET === 'true') {
+      console.log('🚫 WebSocket desabilitado devido a mixed content (HTTPS/WS). Use polling ou configure SSL no backend.');
+      return;
+    }
+
+    // Verificar se estamos em HTTPS e tentando conectar WS (inseguro)
+    if (window.location.protocol === 'https:' && this.wsURL.startsWith('ws:')) {
+      console.error('🚫 Não é possível conectar WebSocket inseguro (ws://) de página HTTPS. Configure SSL no backend ou use wss://');
+      return;
+    }
+
     try {
       const token = authService.getToken();
-      
+
       if (!token) {
         console.error('❌ Token não encontrado para WebSocket');
         return;
@@ -471,6 +483,11 @@ class CloudFarmAPI {
 
     console.log('🔍 Testando conectividade básica com:', serverURL);
 
+    // Verificar mixed content issue
+    if (window.location.protocol === 'https:' && serverURL.startsWith('http:')) {
+      console.warn('⚠️ Mixed Content: Página HTTPS tentando acessar HTTP backend. Isso pode ser bloqueado pelo navegador.');
+    }
+
     try {
       // Primeiro tentar com HEAD request simples
       const controller = new AbortController();
@@ -491,6 +508,12 @@ class CloudFarmAPI {
 
     } catch (error) {
       console.error('❌ Erro na conectividade:', error.message || error);
+
+      // Verificar se é erro de mixed content
+      if (window.location.protocol === 'https:' && serverURL.startsWith('http:')) {
+        console.error('🚫 Mixed Content Error: Navegador bloqueia HTTP de página HTTPS. Configure SSL no backend.');
+        throw new Error('Mixed Content: Configure HTTPS no backend ou use desenvolvimento local');
+      }
 
       // Se falhou com CORS, tentar no-cors como fallback
       if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
