@@ -18,7 +18,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
     if (isOpen) {
       clearError();
       setLocalError('');
-      setFormData({ email: '', password: '' });
+      setFormData({ username: '', password: '' });
     }
   }, [isOpen, clearError]);
 
