@@ -162,6 +162,9 @@ const Layout = () => {
           onSuccess={() => setShowLoginModal(false)}
         />
       )}
+
+      {/* Diagnóstico de Conectividade - Temporário para debug */}
+      <ConnectionDiagnostic />
     </div>
   );
 };
