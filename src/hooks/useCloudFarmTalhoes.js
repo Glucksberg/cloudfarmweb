@@ -397,6 +397,7 @@ export const useCloudFarmTalhoes = () => {
     
     // Conectividade
     checkConnection,
+    checkBasicConnection,
     reconnect,
     
     // Controle
