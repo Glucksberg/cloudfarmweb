@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Realiza logout
    */
-  const logout = async () => {
+  const logout = useCallback(async () => {
     dispatch({ type: AUTH_ACTIONS.SET_LOGGING_OUT });
 
     try {
@@ -212,7 +212,7 @@ export const AuthProvider = ({ children }) => {
       // Mesmo com erro, fazer logout local
       dispatch({ type: AUTH_ACTIONS.SET_UNAUTHENTICATED });
     }
-  };
+  }, []);
 
   /**
    * Renova o token
@@ -291,7 +291,7 @@ export const AuthProvider = ({ children }) => {
     isLoggingOut: state.authState === AUTH_STATES.LOGGING_OUT,
     hasError: state.authState === AUTH_STATES.ERROR,
     
-    // Funções
+    // Fun��ões
     login,
     logout,
     refreshToken,
