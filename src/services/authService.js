@@ -44,7 +44,7 @@ class AuthService {
         throw new Error(data.message || 'Resposta inválida do servidor');
       }
     } catch (error) {
-      console.error('❌ Erro no login:', error);
+      console.error('�� Erro no login:', error);
 
       // Melhorar mensagem de erro para problemas de conectividade
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
@@ -52,7 +52,9 @@ class AuthService {
                                    window.location.hostname.includes('herokuapp.com') ||
                                    window.location.hostname.includes('vercel.app');
 
-        const helpMessage = isCloudEnvironment ? `
+        const isLocalhost = this.baseURL.includes('localhost') || this.baseURL.includes('127.0.0.1');
+
+        const helpMessage = (isCloudEnvironment && isLocalhost) ? `
 🌐 PROBLEMA DE CONFIGURAÇÃO CLOUD/LOCAL 🌐
 
 Frontend rodando em: ${window.location.origin} (cloud)
