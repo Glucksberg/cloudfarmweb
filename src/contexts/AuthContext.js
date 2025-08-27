@@ -268,9 +268,9 @@ export const AuthProvider = ({ children }) => {
    * @param {string} role
    * @returns {boolean}
    */
-  const hasRole = (role) => {
+  const hasRole = useCallback((role) => {
     return state.user && state.user.roles && state.user.roles.includes(role);
-  };
+  }, [state.user]);
 
   /**
    * Verifica se o usuário é admin
