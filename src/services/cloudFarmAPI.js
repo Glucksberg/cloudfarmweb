@@ -463,7 +463,7 @@ class CloudFarmAPI {
 
   // Verificar conectividade básica (sem autenticação)
   async checkBasicConnection() {
-    // Determinar URL base do servidor
+    // Determinar URL base do servidor (remover /api para testar conectividade básica)
     let serverURL = this.baseURL;
     if (serverURL.includes('/api')) {
       serverURL = serverURL.replace('/api', '');
@@ -472,29 +472,44 @@ class CloudFarmAPI {
     console.log('🔍 Testando conectividade básica com:', serverURL);
 
     try {
-      // Fazer request mais simples para evitar CORS preflight
-      const response = await Promise.race([
-        fetch(serverURL, {
-          method: 'GET',
-          mode: 'no-cors' // Evita CORS preflight, mas não conseguimos ler resposta
-        }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Connection timeout')), 5000)
-        )
-      ]);
+      // Primeiro tentar com HEAD request simples
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-      // Com no-cors, sempre retorna response.type = 'opaque'
-      // Se chegou até aqui sem erro, o servidor está acessível
-      console.log('✅ Servidor acessível (modo no-cors)');
-      return true;
+      const response = await fetch(serverURL, {
+        method: 'HEAD',
+        mode: 'cors',
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      clearTimeout(timeoutId);
+      console.log('✅ Servidor respondeu:', response.status);
+      return response.status < 500; // Considerar sucesso se não for erro de servidor
 
     } catch (error) {
-      console.error('❌ Servidor não acessível:', error.message || error);
+      console.error('❌ Erro na conectividade:', error.message || error);
 
-      if (error.message.includes('Failed to fetch')) {
-        console.log('💡 Servidor offline ou firewall bloqueando');
-      } else if (error.message.includes('timeout')) {
-        console.log('💡 Servidor muito lento ou sobregregado');
+      // Se falhou com CORS, tentar no-cors como fallback
+      if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+        try {
+          console.log('🔄 Tentando fallback no-cors...');
+          await fetch(serverURL, {
+            method: 'GET',
+            mode: 'no-cors'
+          });
+          console.log('⚠️ Servidor acessível mas com problema de CORS');
+          return true; // Servidor existe mas tem problema de CORS
+        } catch (noCorsError) {
+          console.error('❌ Servidor completamente inacessível:', noCorsError.message);
+          return false;
+        }
+      }
+
+      if (error.name === 'AbortError') {
+        console.log('💡 Timeout - servidor muito lento ou offline');
       }
 
       return false;
