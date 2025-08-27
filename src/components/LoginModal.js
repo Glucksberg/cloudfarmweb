@@ -129,17 +129,17 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
         
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email:</label>
+            <label htmlFor="username">Username:</label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
               disabled={isLoggingIn}
-              placeholder="seu.email@exemplo.com"
-              autoComplete="email"
+              placeholder="Seu username do CloudFarm"
+              autoComplete="username"
               autoFocus
             />
           </div>
