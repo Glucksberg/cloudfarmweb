@@ -472,14 +472,19 @@ class CloudFarmAPI {
     console.log('🔍 Testando conectividade básica com:', serverURL);
 
     try {
-      const response = await fetch(serverURL, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        // Timeout para evitar espera muito longa
-        signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
-      });
+      // Usar Promise.race para timeout mais confiável
+      const response = await Promise.race([
+        fetch(serverURL, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Connection timeout')), 8000)
+        )
+      ]);
 
       if (response.ok) {
         console.log('✅ Conexão básica com CloudFarm ativa');
@@ -491,11 +496,12 @@ class CloudFarmAPI {
     } catch (error) {
       console.error('❌ CloudFarm não acessível:', error.message || error);
 
-      // Diferentes tipos de erro têm diferentes causas
-      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      // Não relançar o erro, apenas retornar false
+      // O componente vai tratar isso apropriadamente
+      if (error.message.includes('Failed to fetch')) {
         console.log('💡 Possível causa: CORS não configurado ou servidor offline');
-      } else if (error.name === 'AbortError') {
-        console.log('💡 Possível causa: Timeout - servidor muito lento');
+      } else if (error.message.includes('timeout')) {
+        console.log('💡 Possível causa: Servidor muito lento ou inacessível');
       }
 
       return false;
