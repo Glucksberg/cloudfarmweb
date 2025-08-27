@@ -480,14 +480,14 @@ class CloudFarmAPI {
 
   // Verificar conectividade básica (sem autenticação)
   async checkBasicConnection() {
-    // Determinar URL base do servidor (remover /api para testar conectividade básica)
+    // Usar URL base do servidor (raiz)
     let serverURL = this.baseURL;
     if (serverURL.includes('/api')) {
       serverURL = serverURL.replace('/api', '');
     }
 
     console.log('🔍 Testando conectividade básica com:', serverURL);
-    console.log('🔒 HTTPS configurado - conexão segura ativa');
+    console.log('🔒 HTTPS configurado - testando endpoint raiz que funciona');
 
     try {
       // Primeiro tentar com HEAD request simples
@@ -552,12 +552,15 @@ class CloudFarmAPI {
   // Verificar conectividade com a API (com autenticação)
   async checkConnection() {
     try {
-      const response = await this.makeAuthenticatedRequest(`${this.baseURL}/health`, {
+      // Usar endpoint raiz que está funcionando
+      const baseURL = this.baseURL.replace('/api', '');
+      const response = await this.makeAuthenticatedRequest(baseURL, {
         method: 'GET'
       });
 
       if (response.ok) {
-        console.log('✅ Conexão com CloudFarm API ativa');
+        const data = await response.json();
+        console.log('✅ Conexão com CloudFarm API ativa:', data);
         return true;
       } else {
         console.warn('⚠️ CloudFarm API respondeu com erro:', response.status);

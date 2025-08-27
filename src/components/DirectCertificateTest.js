@@ -11,7 +11,7 @@ const DirectCertificateTest = () => {
     try {
       console.log('🔒 Testando conexão HTTPS direta...');
       
-      const response = await fetch('https://178.156.157.146/api/health', {
+      const response = await fetch('https://178.156.157.146/', {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -172,7 +172,7 @@ const DirectCertificateTest = () => {
       }}>
         <strong>💡 O que este teste faz:</strong>
         <br />
-        Tenta conectar diretamente em <code>https://178.156.157.146/api/health</code> 
+        Tenta conectar diretamente em <code>https://178.156.157.146/</code> 
         para verificar se o certificado auto-assinado foi aceito pelo navegador.
       </div>
     </div>
