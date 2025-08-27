@@ -807,6 +807,31 @@ const Talhoes = () => {
       setIsInitializing(false);
     }
 
+    // Component-level AbortError protection
+    const componentAbortErrorHandler = (event) => {
+      const error = event.error || event.reason;
+      if (error && (
+        error.name === 'AbortError' ||
+        (error.message && error.message.includes('signal is aborted')) ||
+        (error.stack && (
+          error.stack.includes('Object.cancel') ||
+          error.stack.includes('Me.abortTile') ||
+          error.stack.includes('ey._abortTile') ||
+          error.stack.includes('ey._removeTile') ||
+          error.stack.includes('ey.update') ||
+          error.stack.includes('Kt._updateSources') ||
+          error.stack.includes('Map._render')
+        ))
+      )) {
+        console.log('🛡️ [Component] Suppressed AbortError');
+        event.preventDefault();
+        return;
+      }
+    };
+
+    window.addEventListener('error', componentAbortErrorHandler);
+    window.addEventListener('unhandledrejection', componentAbortErrorHandler);
+
     // Cleanup function
     return () => {
       console.log('🧹 Cleaning up map...');
@@ -1023,7 +1048,7 @@ const Talhoes = () => {
         await createCloudFarmTalhao(newTalhaoData_final);
         console.log('✅ Talhão salvo no CloudFarm com sucesso');
       } else {
-        console.warn('⚠️ CloudFarm desconectado, salvando localmente');
+        console.warn('���️ CloudFarm desconectado, salvando localmente');
         // Fallback: salvar localmente se CloudFarm não estiver disponível
         // (ser�� implementado posteriormente se necessário)
       }
@@ -1547,7 +1572,7 @@ const Talhoes = () => {
             </div>
           </div>
           <div className="info-card">
-            <span className="info-icon">����</span>
+            <span className="info-icon">�����</span>
             <div className="info-content">
               <span className="info-title">Talhões Cadastrados</span>
               <span className="info-value">{statistics?.total || 0} unidades</span>
