@@ -109,14 +109,19 @@ if (typeof window !== 'undefined' && !window.__APP_ABORT_ERROR_SUPPRESSED__) {
     }
   });
 
-  // Intercept fetch AbortErrors specifically
+  // Intercept fetch AbortErrors specifically (but preserve other errors)
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     return originalFetch.apply(this, args).catch(error => {
       if (isAbortError(error)) {
         console.log('🛡️ [APP] Suppressed AbortError in fetch');
-        return Promise.reject(new Error('Network request failed')); // Generic error
+        // Re-throw a more generic AbortError that won't cause UI disruption
+        const suppressedError = new Error('Request was aborted');
+        suppressedError.name = 'AbortError';
+        suppressedError.suppressed = true;
+        return Promise.reject(suppressedError);
       }
+      // Preserve all other errors unchanged for proper error handling
       return Promise.reject(error);
     });
   };
