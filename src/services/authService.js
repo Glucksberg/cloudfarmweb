@@ -1,7 +1,7 @@
 class AuthService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_CLOUDFARM_API_URL || 'http://localhost:8080/api';
-    this.TOKEN_KEY = 'cloudfarm_token';
+    this.baseURL = process.env.REACT_APP_CLOUDFARM_API_URL || 'http://localhost:3001/api';
+    this.TOKEN_KEY = 'jwt_token';
     this.USER_KEY = 'cloudfarm_user';
   }
 
@@ -24,22 +24,22 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer login');
+        throw new Error(data.message || 'Erro ao fazer login');
       }
 
-      if (data.success && data.token) {
+      if (data.success && data.data && data.data.token) {
         // Salvar token e dados do usuário
-        this.setToken(data.token);
-        this.setUser(data.user);
-        
+        this.setToken(data.data.token);
+        this.setUser(data.data.user);
+
         return {
           success: true,
-          user: data.user,
-          token: data.token,
-          expiresIn: data.expiresIn
+          user: data.data.user,
+          token: data.data.token,
+          expiresIn: data.data.expiresIn
         };
       } else {
-        throw new Error(data.error || 'Resposta inválida do servidor');
+        throw new Error(data.message || 'Resposta inválida do servidor');
       }
     } catch (error) {
       console.error('Erro no login:', error);
@@ -107,12 +107,12 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao renovar token');
+        throw new Error(data.message || 'Erro ao renovar token');
       }
 
-      if (data.success && data.token) {
-        this.setToken(data.token);
-        return data.token;
+      if (data.success && data.data && data.data.token) {
+        this.setToken(data.data.token);
+        return data.data.token;
       } else {
         throw new Error('Resposta inválida do servidor');
       }
@@ -147,13 +147,16 @@ class AuthService {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao obter dados do usuário');
+        throw new Error(data.message || 'Erro ao obter dados do usuário');
       }
 
-      // Atualizar dados locais
-      this.setUser(data);
-      
-      return data;
+      if (data.success && data.data && data.data.user) {
+        // Atualizar dados locais
+        this.setUser(data.data.user);
+        return data.data.user;
+      } else {
+        throw new Error('Resposta inválida do servidor');
+      }
     } catch (error) {
       console.error('Erro ao obter dados do usuário:', error);
       throw error;
