@@ -13,6 +13,8 @@ class AuthService {
    */
   async login(username, password) {
     try {
+      console.log(`🔌 Tentando conectar ao backend: ${this.baseURL}/auth/login`);
+
       const response = await fetch(`${this.baseURL}/auth/login`, {
         method: 'POST',
         headers: {
@@ -42,7 +44,38 @@ class AuthService {
         throw new Error(data.message || 'Resposta inválida do servidor');
       }
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('❌ Erro no login:', error);
+
+      // Melhorar mensagem de erro para problemas de conectividade
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        const helpMessage = `
+🚨 ERRO DE CONECTIVIDADE 🚨
+
+Não foi possível conectar ao backend CloudFarm em:
+➡️ ${this.baseURL}/auth/login
+
+POSSÍVEIS SOLUÇÕES:
+
+1️⃣ VERIFICAR SE O BACKEND ESTÁ RODANDO:
+   - Para desenvolvimento local: verifique se o servidor está na porta 3001
+   - Para VPS CloudFarm: verifique se está na porta 8080
+
+2️⃣ TESTAR CONECTIVIDADE:
+   curl ${this.baseURL}/health
+
+3️⃣ VERIFICAR CONFIGURAÇÃO:
+   - Arquivo .env criado com a URL correta
+   - Variável REACT_APP_CLOUDFARM_API_URL
+
+4️⃣ CONFIGURAÇÕES COMUNS:
+   - Desenvolvimento: http://localhost:3001/api
+   - VPS CloudFarm: http://SEU_VPS_IP:8080/api
+        `;
+
+        console.error(helpMessage);
+        throw new Error('Backend CloudFarm não está acessível. Verifique se o servidor está rodando e a URL está correta.');
+      }
+
       throw error;
     }
   }
