@@ -56,7 +56,10 @@ const ConnectionStatus = () => {
         setBasicConnection(isBasicConnected);
       }
     } catch (error) {
-      console.warn('Erro na reconexão:', error);
+      // Não logar erros suprimidos ou AbortErrors
+      if (!error.suppressed && error.name !== 'AbortError') {
+        console.warn('Erro na reconexão:', error);
+      }
       if (!isAuthenticated) {
         setBasicConnection(false);
       }
