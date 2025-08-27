@@ -483,7 +483,7 @@ const Talhoes = () => {
 
     try {
       // Comprehensive telemetry disabling
-      console.log('🚫 Aggressively disabling all Mapbox telemetry...');
+      console.log('�� Aggressively disabling all Mapbox telemetry...');
 
       // Multiple methods to disable telemetry
       try {
@@ -739,13 +739,21 @@ const Talhoes = () => {
         const errorMessage = error.message || '';
         const errorStack = error.stack || '';
 
-        // Ignore abort errors (tiles being cancelled)
+        // Enhanced abort error detection (covers all patterns from user's error)
         if (error.name === 'AbortError' ||
             errorMessage.includes('signal is aborted') ||
+            errorMessage.includes('aborted without reason') ||
+            errorStack.includes('Object.cancel') ||
+            errorStack.includes('Me.abortTile') ||
+            errorStack.includes('ey._abortTile') ||
+            errorStack.includes('ey._removeTile') ||
+            errorStack.includes('ey.update') ||
+            errorStack.includes('Kt._updateSources') ||
+            errorStack.includes('Map._render') ||
             errorStack.includes('abortTile') ||
             errorStack.includes('_abortTile') ||
             errorStack.includes('_removeTile')) {
-          console.log('⏹️ Tile request aborted (expected during updates)');
+          console.log('🛡️ AbortError suppressed in map error handler');
           return;
         }
 
