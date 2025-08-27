@@ -1,15 +1,19 @@
 // Hook para gerenciar talhões integrados com CloudFarm
 import { useState, useEffect, useCallback, useRef } from 'react';
 import cloudFarmAPI from '../services/cloudFarmAPI';
+import { useAuth } from '../contexts/AuthContext';
 
 export const useCloudFarmTalhoes = () => {
+  // Contexto de autenticação
+  const { isAuthenticated, user } = useAuth();
+
   // Estados
   const [talhoes, setTalhoes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [connected, setConnected] = useState(false);
   const [statistics, setStatistics] = useState(null);
-  
+
   // Controle de componente montado
   const isMounted = useRef(true);
 
@@ -17,15 +21,15 @@ export const useCloudFarmTalhoes = () => {
 
   // Carregar talhões do CloudFarm
   const loadTalhoes = useCallback(async () => {
-    if (!isMounted.current) return;
-    
+    if (!isMounted.current || !isAuthenticated) return;
+
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('🔄 Carregando talhões do CloudFarm...');
       const data = await cloudFarmAPI.getTalhoes();
-      
+
       if (isMounted.current) {
         setTalhoes(data);
         console.log('✅ Talhões carregados:', data.length);
@@ -33,7 +37,11 @@ export const useCloudFarmTalhoes = () => {
     } catch (err) {
       console.error('❌ Erro ao carregar talhões:', err);
       if (isMounted.current) {
-        setError(`Erro ao carregar talhões: ${err.message}`);
+        if (err.message.includes('Token') || err.message.includes('autentica')) {
+          setError('Sessão expirada. Faça login novamente.');
+        } else {
+          setError(`Erro ao carregar talhões: ${err.message}`);
+        }
         // Em caso de erro, usar dados locais como fallback
         setTalhoes([]);
       }
@@ -42,7 +50,7 @@ export const useCloudFarmTalhoes = () => {
         setLoading(false);
       }
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Criar novo talhão
   const createTalhao = useCallback(async (talhaoData) => {
