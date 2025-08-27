@@ -42,26 +42,26 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const validateForm = () => {
-    if (!formData.email.trim()) {
-      setLocalError('Email é obrigatório');
+    if (!formData.username.trim()) {
+      setLocalError('Username é obrigatório');
       return false;
     }
-    
-    if (!formData.email.includes('@')) {
-      setLocalError('Email deve ter um formato válido');
+
+    if (formData.username.length < 3) {
+      setLocalError('Username deve ter pelo menos 3 caracteres');
       return false;
     }
-    
+
     if (!formData.password.trim()) {
       setLocalError('Senha é obrigatória');
       return false;
     }
-    
+
     if (formData.password.length < 3) {
       setLocalError('Senha deve ter pelo menos 3 caracteres');
       return false;
     }
-    
+
     return true;
   };
 
