@@ -101,21 +101,21 @@ const ConnectionStatus = () => {
           status: 'server-online',
           color: '#2196f3',
           icon: '🔵',
-          message: 'Servidor Online - Faça login para conectar'
+          message: 'Servidor Acessível - CORS precisa ser configurado no VPS'
         };
       } else if (basicConnection === false) {
         return {
           status: 'server-offline',
           color: '#f44336',
           icon: '🔴',
-          message: 'Servidor CloudFarm Inacessível (CORS ou Offline)'
+          message: 'Servidor Offline ou Firewall Bloqueando'
         };
       } else {
         return {
           status: 'unknown',
           color: '#9e9e9e',
           icon: '⚪',
-          message: 'Verificando servidor...'
+          message: 'Verificando conectividade...'
         };
       }
     }
