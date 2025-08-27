@@ -239,22 +239,22 @@ export const AuthProvider = ({ children }) => {
   /**
    * Atualiza dados do usuário
    */
-  const updateUser = async () => {
+  const updateUser = useCallback(async () => {
     try {
       const user = await authService.getCurrentUserFromServer();
       const token = authService.getToken();
-      
+
       dispatch({
         type: AUTH_ACTIONS.SET_AUTHENTICATED,
         payload: { user, token }
       });
-      
+
       return user;
     } catch (error) {
       console.error('Erro ao atualizar dados do usuário:', error);
       throw error;
     }
-  };
+  }, []);
 
   /**
    * Limpa erro atual
