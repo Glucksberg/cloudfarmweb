@@ -163,11 +163,11 @@ export const AuthProvider = ({ children }) => {
    * @param {string} password
    * @returns {Promise<Object>}
    */
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (username, password) => {
     dispatch({ type: AUTH_ACTIONS.SET_LOGGING_IN });
 
     try {
-      const result = await authService.login(email, password);
+      const result = await authService.login(username, password);
 
       if (result.success) {
         dispatch({
