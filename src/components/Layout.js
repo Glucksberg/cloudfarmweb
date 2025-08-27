@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import UserInfo from './UserInfo';
+import LoginModal from './LoginModal';
 import './Layout.css';
 
 const Layout = () => {
+  const { isAuthenticated, isChecking, user } = useAuth();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -63,9 +68,24 @@ const Layout = () => {
             <button className="notification-btn" aria-label="Notificações">
               🔔
             </button>
-            <button className="user-btn" aria-label="Perfil do usuário">
-              👤
-            </button>
+
+            {/* Componente de informações do usuário */}
+            {isAuthenticated && user ? (
+              <UserInfo
+                user={user}
+                showDropdown={true}
+                showFarmInfo={true}
+                className="header-user-info"
+              />
+            ) : (
+              <button
+                className="login-btn"
+                onClick={() => setShowLoginModal(true)}
+                aria-label="Fazer login"
+              >
+                🔑 Login
+              </button>
+            )}
           </div>
         </div>
         <div className="header-banner">
