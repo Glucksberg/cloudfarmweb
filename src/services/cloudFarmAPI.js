@@ -12,6 +12,14 @@ class CloudFarmAPI {
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000; // 1 segundo inicial
     this.listeners = new Map();
+
+    // Detectar se estamos usando HTTPS com certificado auto-assinado
+    this.isHTTPS = this.baseURL.startsWith('https://');
+    this.isSelfSigned = this.isHTTPS && this.baseURL.includes('178.156.157.146');
+
+    if (this.isSelfSigned) {
+      console.log('🔒 Detectado certificado auto-assinado. Configurando tratamento especial...');
+    }
   }
 
   // ===== MÉTODOS HTTP/REST AUTENTICADOS =====
@@ -504,6 +512,18 @@ class CloudFarmAPI {
 
       // Log do erro para diagnóstico
       console.log('📊 Detalhes do erro de conectividade:', error.name, error.message);
+
+      // Detectar erros de certificado auto-assinado
+      if (this.isSelfSigned && (
+        error.message.includes('certificate') ||
+        error.message.includes('SSL') ||
+        error.message.includes('TLS') ||
+        error.message.includes('insecure') ||
+        error.message.includes('ERR_CERT')
+      )) {
+        console.warn('🔒 Erro de certificado auto-assinado detectado. Usuário precisa aceitar certificado.');
+        throw new Error('Certificado auto-assinado precisa ser aceito no navegador');
+      }
 
       // Se falhou com CORS, tentar no-cors como fallback
       if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
