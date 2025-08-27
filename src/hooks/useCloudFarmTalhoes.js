@@ -126,10 +126,16 @@ export const useCloudFarmTalhoes = () => {
 
   // ===== OPERAÇÕES DE CONECTIVIDADE =====
 
-  // Verificar conexão com CloudFarm
+  // Verificar conexão com CloudFarm (só se autenticado)
   const checkConnection = useCallback(async () => {
-    if (!isMounted.current) return false;
-    
+    if (!isMounted.current || !isAuthenticated) {
+      if (isMounted.current && !isAuthenticated) {
+        setConnected(false);
+        setError(null); // Limpar erro quando não autenticado
+      }
+      return false;
+    }
+
     try {
       const isConnected = await cloudFarmAPI.checkConnection();
       if (isMounted.current) {
@@ -143,11 +149,15 @@ export const useCloudFarmTalhoes = () => {
       console.error('❌ Erro ao verificar conexão:', err);
       if (isMounted.current) {
         setConnected(false);
-        setError('Sem conexão com CloudFarm');
+        if (err.message.includes('Token') || err.message.includes('autentica')) {
+          setError('Sessão expirada. Faça login novamente.');
+        } else {
+          setError('Sem conexão com CloudFarm');
+        }
       }
       return false;
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Carregar estatísticas
   const loadStatistics = useCallback(async () => {
