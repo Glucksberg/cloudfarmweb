@@ -17,19 +17,22 @@ const ConnectionStatus = () => {
           const isBasicConnected = await checkBasicConnection();
           setBasicConnection(isBasicConnected);
         } catch (error) {
+          console.warn('Erro na verificação básica:', error);
           setBasicConnection(false);
         } finally {
           setChecking(false);
         }
       };
 
+      // Verificar apenas uma vez inicialmente
       checkBasic();
-      
-      // Verificar periodicamente quando não autenticado
-      const interval = setInterval(checkBasic, 30000);
+
+      // Verificar periodicamente mas com menos frequência
+      const interval = setInterval(checkBasic, 60000); // 1 minuto
       return () => clearInterval(interval);
     } else {
       setBasicConnection(null);
+      setChecking(false);
     }
   }, [isAuthenticated, checkBasicConnection]);
 
