@@ -100,7 +100,7 @@ Backend tentando: ${this.baseURL}/auth/login (VPS)
 
 💡 SOLUÇÃO RÁPIDA: Use desenvolvimento local!
         ` : `
-🚨 BACKEND CLOUDFARM OFFLINE ���
+🚨 BACKEND CLOUDFARM OFFLINE 🚨
 
 Tentativa de conexão: ${this.baseURL}/auth/login
 
@@ -115,9 +115,9 @@ Tentativa de conexão: ${this.baseURL}/auth/login
         console.error(helpMessage);
 
         const errorMessage = (isCloudEnvironment && isLocalhost)
-          ? '🌐 Frontend em cloud não consegue acessar localhost. Use desenvolvimento local ou exponha o backend!'
+          ? '🌐 Frontend em cloud não consegue acessar localhost. Use desenvolvimento local!'
           : (isCloudEnvironment && !isLocalhost)
-          ? '🌐 Erro de conexão cloud→VPS. Verifique endpoint /auth/login, CORS e conectividade!'
+          ? '🚨 PROBLEMA DE CORS! Backend CloudFarm não aceita requests do fly.dev. Configure CORS no VPS ou use desenvolvimento local!'
           : '🚨 Backend CloudFarm não está acessível. Verifique se está rodando!';
 
         throw new Error(errorMessage);
