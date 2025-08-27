@@ -6,7 +6,7 @@ const LoginModal = ({ isOpen, onClose, onSuccess }) => {
   const { login, isLoggingIn, error, clearError } = useAuth();
   
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
   
