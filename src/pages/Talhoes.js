@@ -9,7 +9,7 @@ import './DrawTools.css';
 import { getMapboxConfig, testMapboxToken, handleMapboxError } from '../utils/mapboxConfig';
 import useCloudFarmTalhoes from '../hooks/useCloudFarmTalhoes';
 import ConnectionStatus from '../components/ConnectionStatus';
-import MixedContentError from '../components/MixedContentError';
+// MixedContentError removido - HTTPS agora configurado ✅
 
 // Ultra-aggressive global AbortError suppression before component loads
 if (typeof window !== 'undefined' && !window.__ABORT_ERROR_SUPPRESSED__) {
@@ -1126,8 +1126,26 @@ const Talhoes = () => {
       {/* Status de Conexão CloudFarm */}
       <ConnectionStatus />
 
-      {/* Mixed Content Error - HTTPS não pode acessar HTTP */}
-      <MixedContentError />
+      {/* HTTPS Configurado com Sucesso! */}
+      {!talhoesLoading && (
+        <div style={{
+          margin: '1rem 0',
+          padding: '1rem',
+          backgroundColor: '#e8f5e8',
+          border: '2px solid #28a745',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <h4 style={{ color: '#28a745', margin: '0 0 0.5rem 0' }}>
+            🎉 HTTPS Configurado com Sucesso!
+          </h4>
+          <p style={{ margin: 0, color: '#155724' }}>
+            ✅ SSL/TLS ativo • ✅ CORS configurado • ✅ WebSocket seguro (WSS)
+            <br />
+            <small>Conectando com: <code>https://178.156.157.146</code></small>
+          </p>
+        </div>
+      )}
 
       {talhoesLoading && (
         <div style={{

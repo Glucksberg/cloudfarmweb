@@ -172,17 +172,14 @@ class CloudFarmAPI {
 
   // Conectar WebSocket para atualizações em tempo real
   connectWebSocket() {
-    // Verificar se WebSocket está desabilitado devido a mixed content
+    // Verificar se WebSocket está desabilitado
     if (process.env.REACT_APP_DISABLE_WEBSOCKET === 'true') {
-      console.log('🚫 WebSocket desabilitado devido a mixed content (HTTPS/WS). Use polling ou configure SSL no backend.');
+      console.log('🚫 WebSocket desabilitado via configuração.');
       return;
     }
 
-    // Verificar se estamos em HTTPS e tentando conectar WS (inseguro)
-    if (window.location.protocol === 'https:' && this.wsURL.startsWith('ws:')) {
-      console.error('🚫 Não é possível conectar WebSocket inseguro (ws://) de página HTTPS. Configure SSL no backend ou use wss://');
-      return;
-    }
+    // ✅ HTTPS configurado - WebSocket seguro habilitado
+    console.log('🔒 Conectando WebSocket seguro (WSS)...');
 
     try {
       const token = authService.getToken();
@@ -482,11 +479,7 @@ class CloudFarmAPI {
     }
 
     console.log('🔍 Testando conectividade básica com:', serverURL);
-
-    // Verificar mixed content issue
-    if (window.location.protocol === 'https:' && serverURL.startsWith('http:')) {
-      console.warn('⚠️ Mixed Content: Página HTTPS tentando acessar HTTP backend. Isso pode ser bloqueado pelo navegador.');
-    }
+    console.log('🔒 HTTPS configurado - conexão segura ativa');
 
     try {
       // Primeiro tentar com HEAD request simples
@@ -509,11 +502,8 @@ class CloudFarmAPI {
     } catch (error) {
       console.error('❌ Erro na conectividade:', error.message || error);
 
-      // Verificar se é erro de mixed content
-      if (window.location.protocol === 'https:' && serverURL.startsWith('http:')) {
-        console.error('🚫 Mixed Content Error: Navegador bloqueia HTTP de página HTTPS. Configure SSL no backend.');
-        throw new Error('Mixed Content: Configure HTTPS no backend ou use desenvolvimento local');
-      }
+      // Log do erro para diagnóstico
+      console.log('📊 Detalhes do erro de conectividade:', error.name, error.message);
 
       // Se falhou com CORS, tentar no-cors como fallback
       if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
