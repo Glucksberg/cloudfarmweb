@@ -1,0 +1,307 @@
+/* Estilos para ferramentas de desenho de talhões */
+
+.draw-tools {
+  background: #f8f9fa;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.draw-tools h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.draw-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.draw-btn {
+  transition: all 0.3s ease;
+  font-family: inherit;
+  min-height: 48px;
+}
+
+.draw-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.draw-btn.active {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
+}
+
+/* Formulário de novo talhão */
+.new-talhao-form {
+  border: 3px solid #2196f3;
+  backdrop-filter: blur(5px);
+}
+
+.new-talhao-form h3 {
+  margin: 0 0 1rem 0;
+  color: #1976d2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.new-talhao-form label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.new-talhao-form input,
+.new-talhao-form select {
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.new-talhao-form input:focus,
+.new-talhao-form select:focus {
+  outline: none;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+/* Indicadores no mapa */
+.map-indicator {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  backdrop-filter: blur(3px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .draw-tools {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  .draw-btn {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .new-talhao-form {
+    width: 90vw;
+    max-width: 350px;
+    padding: 1.5rem;
+  }
+}
+
+/* Estilos para talhões buttons - melhorados */
+.talhoes-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.talhao-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.85rem;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.talhao-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.talhao-btn.selected {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.btn-label {
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.btn-area {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.btn-status {
+  font-size: 1.2rem;
+}
+
+/* Cards de informação do sistema */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.info-card:hover {
+  border-color: #2196f3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.info-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.info-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-title {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Status badges */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Selected talhao panel */
+.selected-talhao-panel {
+  background: #f0f7ff;
+  border: 2px solid #2196f3;
+  border-radius: 12px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.selected-info h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1976d2;
+}
+
+.quick-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  color: #555;
+  font-weight: 500;
+}
+
+/* Mapbox Draw overrides */
+.mapbox-gl-draw_ctrl-draw-btn {
+  background-image: none !important;
+  font-size: 18px !important;
+}
+
+.mapbox-gl-draw_ctrl-draw-btn.mapbox-gl-draw_polygon::before {
+  content: "🖊️";
+}
+
+.mapbox-gl-draw_ctrl-draw-btn.mapbox-gl-draw_trash::before {
+  content: "🗑️";
+}
+
+/* Container principal */
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 2.5rem;
+}
+
+.page-header p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Map container */
+.map-container-wrapper {
+  margin: 2rem 0;
+}
+
+.mapbox-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.map-loading {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #333;
+}
+
+.map-loading h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.map-loading p {
+  margin: 0;
+  opacity: 0.8;
+}

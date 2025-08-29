@@ -1,0 +1,46 @@
+{
+  "name": "cloudfarm-web",
+  "version": "1.0.0",
+  "description": "CloudFarm Web Application - VPS Deployment",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:vps": "cp .env.production .env && npm run build",
+    "serve:vps": "cp .env.production .env && npm run build && npx serve -s build -l 3000",
+    "dev:vps": "cp .env.production .env && npm start",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "deploy:vps": "npm run build:vps && echo 'Deploy ready! Copy build/ to VPS'",
+    "pm2:start": "pm2 start ecosystem.config.js --env production",
+    "pm2:stop": "pm2 stop cloudfarm-web",
+    "pm2:restart": "pm2 restart cloudfarm-web"
+  },
+  "dependencies": {
+    "@mapbox/mapbox-gl-draw": "^1.4.3",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@turf/turf": "^7.1.0",
+    "mapbox-gl": "^3.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
